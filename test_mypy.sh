@@ -14,5 +14,5 @@ chmod 600 root_key
 ssh-keyscan $serverIp >> ~/.ssh/known_hosts
 ssh-add root_key
 zip -r mypy_test_cache.zip mypy_test_cache/
-yes | scp -i root_key ./mypy_test_cache.zip root@$serverIp:~/cache/pandas-dev---pandas.zip
-yes | scp -i root_key ./mypy_test_report.txt root@$serverIp:~/report/pandas-dev---pandas.txt
+yes | scp -i root_key ./mypy_test_cache.zip root@$serverIp:~/cache/pandas-dev---pandas--unannotated.zip
+yes | scp -i root_key ./mypy_test_report.txt root@$serverIp:~/report/pandas-dev---pandas--unannotated.txt

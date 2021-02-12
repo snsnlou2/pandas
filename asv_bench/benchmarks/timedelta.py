@@ -1,24 +1,20 @@
-"""
-Timedelta benchmarks with non-tslibs dependencies.  See
-benchmarks.tslibs.timedelta for benchmarks that rely only on tslibs.
-"""
 
+'\nTimedelta benchmarks with non-tslibs dependencies.  See\nbenchmarks.tslibs.timedelta for benchmarks that rely only on tslibs.\n'
 import numpy as np
-
 from pandas import DataFrame, Series, timedelta_range, to_timedelta
 
+class ToTimedelta():
 
-class ToTimedelta:
     def setup(self):
         self.ints = np.random.randint(0, 60, size=10000)
         self.str_days = []
         self.str_seconds = []
         for i in self.ints:
-            self.str_days.append(f"{i} days")
-            self.str_seconds.append(f"00:00:{i:02d}")
+            self.str_days.append(f'{i} days')
+            self.str_seconds.append(f'00:00:{i:02d}')
 
     def time_convert_int(self):
-        to_timedelta(self.ints, unit="s")
+        to_timedelta(self.ints, unit='s')
 
     def time_convert_string_days(self):
         to_timedelta(self.str_days)
@@ -26,25 +22,23 @@ class ToTimedelta:
     def time_convert_string_seconds(self):
         to_timedelta(self.str_seconds)
 
-
-class ToTimedeltaErrors:
-
-    params = ["coerce", "ignore"]
-    param_names = ["errors"]
+class ToTimedeltaErrors():
+    params = ['coerce', 'ignore']
+    param_names = ['errors']
 
     def setup(self, errors):
         ints = np.random.randint(0, 60, size=10000)
-        self.arr = [f"{i} days" for i in ints]
-        self.arr[-1] = "apple"
+        self.arr = [f'{i} days' for i in ints]
+        self.arr[(- 1)] = 'apple'
 
     def time_convert(self, errors):
         to_timedelta(self.arr, errors=errors)
 
+class DatetimeAccessor():
 
-class DatetimeAccessor:
     def setup_cache(self):
         N = 100000
-        series = Series(timedelta_range("1 days", periods=N, freq="h"))
+        series = Series(timedelta_range('1 days', periods=N, freq='h'))
         return series
 
     def time_dt_accessor(self, series):
@@ -62,11 +56,11 @@ class DatetimeAccessor:
     def time_timedelta_nanoseconds(self, series):
         series.dt.nanoseconds
 
+class TimedeltaIndexing():
 
-class TimedeltaIndexing:
     def setup(self):
-        self.index = timedelta_range(start="1985", periods=1000, freq="D")
-        self.index2 = timedelta_range(start="1986", periods=1000, freq="D")
+        self.index = timedelta_range(start='1985', periods=1000, freq='D')
+        self.index2 = timedelta_range(start='1986', periods=1000, freq='D')
         self.series = Series(range(1000), index=self.index)
         self.timedelta = self.index[500]
 
@@ -80,7 +74,7 @@ class TimedeltaIndexing:
         self.series.loc[self.timedelta]
 
     def time_align(self):
-        DataFrame({"a": self.series, "b": self.series[:500]})
+        DataFrame({'a': self.series, 'b': self.series[:500]})
 
     def time_intersection(self):
         self.index.intersection(self.index2)

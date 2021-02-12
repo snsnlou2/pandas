@@ -1,8 +1,8 @@
+
 import pandas as pd
 
-
-class Finalize:
-    param_names = ["series", "frame"]
+class Finalize():
+    param_names = ['series', 'frame']
     params = [pd.Series, pd.DataFrame]
 
     def setup(self, param):
@@ -13,4 +13,4 @@ class Finalize:
         self.obj = obj
 
     def time_finalize_micro(self, param):
-        self.obj.__finalize__(self.obj, method="__finalize__")
+        self.obj.__finalize__(self.obj, method='__finalize__')

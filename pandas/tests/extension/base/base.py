@@ -1,9 +1,8 @@
+
 import pandas._testing as tm
 
+class BaseExtensionTests():
 
-class BaseExtensionTests:
-    # classmethod and different signature is needed
-    # to make inheritance compliant with mypy
     @classmethod
     def assert_equal(cls, left, right, **kwargs):
         return tm.assert_equal(left, right, **kwargs)

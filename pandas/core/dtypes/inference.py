@@ -1,179 +1,43 @@
-""" basic inference routines """
 
+' basic inference routines '
 from collections import abc
 from numbers import Number
 import re
 from typing import Pattern
-
 import numpy as np
-
 from pandas._libs import lib
-
 is_bool = lib.is_bool
-
 is_integer = lib.is_integer
-
 is_float = lib.is_float
-
 is_complex = lib.is_complex
-
 is_scalar = lib.is_scalar
-
 is_decimal = lib.is_decimal
-
 is_interval = lib.is_interval
-
 is_list_like = lib.is_list_like
-
 is_iterator = lib.is_iterator
 
-
-def is_number(obj) -> bool:
-    """
-    Check if the object is a number.
-
-    Returns True when the object is a number, and False if is not.
-
-    Parameters
-    ----------
-    obj : any type
-        The object to check if is a number.
-
-    Returns
-    -------
-    is_number : bool
-        Whether `obj` is a number or not.
-
-    See Also
-    --------
-    api.types.is_integer: Checks a subgroup of numbers.
-
-    Examples
-    --------
-    >>> pd.api.types.is_number(1)
-    True
-    >>> pd.api.types.is_number(7.15)
-    True
-
-    Booleans are valid because they are int subclass.
-
-    >>> pd.api.types.is_number(False)
-    True
-
-    >>> pd.api.types.is_number("foo")
-    False
-    >>> pd.api.types.is_number("5")
-    False
-    """
+def is_number(obj):
+    '\n    Check if the object is a number.\n\n    Returns True when the object is a number, and False if is not.\n\n    Parameters\n    ----------\n    obj : any type\n        The object to check if is a number.\n\n    Returns\n    -------\n    is_number : bool\n        Whether `obj` is a number or not.\n\n    See Also\n    --------\n    api.types.is_integer: Checks a subgroup of numbers.\n\n    Examples\n    --------\n    >>> pd.api.types.is_number(1)\n    True\n    >>> pd.api.types.is_number(7.15)\n    True\n\n    Booleans are valid because they are int subclass.\n\n    >>> pd.api.types.is_number(False)\n    True\n\n    >>> pd.api.types.is_number("foo")\n    False\n    >>> pd.api.types.is_number("5")\n    False\n    '
     return isinstance(obj, (Number, np.number))
 
+def iterable_not_string(obj):
+    '\n    Check if the object is an iterable but not a string.\n\n    Parameters\n    ----------\n    obj : The object to check.\n\n    Returns\n    -------\n    is_iter_not_string : bool\n        Whether `obj` is a non-string iterable.\n\n    Examples\n    --------\n    >>> iterable_not_string([1, 2, 3])\n    True\n    >>> iterable_not_string("foo")\n    False\n    >>> iterable_not_string(1)\n    False\n    '
+    return (isinstance(obj, abc.Iterable) and (not isinstance(obj, str)))
 
-def iterable_not_string(obj) -> bool:
-    """
-    Check if the object is an iterable but not a string.
-
-    Parameters
-    ----------
-    obj : The object to check.
-
-    Returns
-    -------
-    is_iter_not_string : bool
-        Whether `obj` is a non-string iterable.
-
-    Examples
-    --------
-    >>> iterable_not_string([1, 2, 3])
-    True
-    >>> iterable_not_string("foo")
-    False
-    >>> iterable_not_string(1)
-    False
-    """
-    return isinstance(obj, abc.Iterable) and not isinstance(obj, str)
-
-
-def is_file_like(obj) -> bool:
-    """
-    Check if the object is a file-like object.
-
-    For objects to be considered file-like, they must
-    be an iterator AND have either a `read` and/or `write`
-    method as an attribute.
-
-    Note: file-like objects must be iterable, but
-    iterable objects need not be file-like.
-
-    Parameters
-    ----------
-    obj : The object to check
-
-    Returns
-    -------
-    is_file_like : bool
-        Whether `obj` has file-like properties.
-
-    Examples
-    --------
-    >>> import io
-    >>> buffer = io.StringIO("data")
-    >>> is_file_like(buffer)
-    True
-    >>> is_file_like([1, 2, 3])
-    False
-    """
-    if not (hasattr(obj, "read") or hasattr(obj, "write")):
+def is_file_like(obj):
+    '\n    Check if the object is a file-like object.\n\n    For objects to be considered file-like, they must\n    be an iterator AND have either a `read` and/or `write`\n    method as an attribute.\n\n    Note: file-like objects must be iterable, but\n    iterable objects need not be file-like.\n\n    Parameters\n    ----------\n    obj : The object to check\n\n    Returns\n    -------\n    is_file_like : bool\n        Whether `obj` has file-like properties.\n\n    Examples\n    --------\n    >>> import io\n    >>> buffer = io.StringIO("data")\n    >>> is_file_like(buffer)\n    True\n    >>> is_file_like([1, 2, 3])\n    False\n    '
+    if (not (hasattr(obj, 'read') or hasattr(obj, 'write'))):
         return False
-
-    if not hasattr(obj, "__iter__"):
+    if (not hasattr(obj, '__iter__')):
         return False
-
     return True
 
-
-def is_re(obj) -> bool:
-    """
-    Check if the object is a regex pattern instance.
-
-    Parameters
-    ----------
-    obj : The object to check
-
-    Returns
-    -------
-    is_regex : bool
-        Whether `obj` is a regex pattern.
-
-    Examples
-    --------
-    >>> is_re(re.compile(".*"))
-    True
-    >>> is_re("foo")
-    False
-    """
+def is_re(obj):
+    '\n    Check if the object is a regex pattern instance.\n\n    Parameters\n    ----------\n    obj : The object to check\n\n    Returns\n    -------\n    is_regex : bool\n        Whether `obj` is a regex pattern.\n\n    Examples\n    --------\n    >>> is_re(re.compile(".*"))\n    True\n    >>> is_re("foo")\n    False\n    '
     return isinstance(obj, Pattern)
 
-
-def is_re_compilable(obj) -> bool:
-    """
-    Check if the object can be compiled into a regex pattern instance.
-
-    Parameters
-    ----------
-    obj : The object to check
-
-    Returns
-    -------
-    is_regex_compilable : bool
-        Whether `obj` can be compiled as a regex pattern.
-
-    Examples
-    --------
-    >>> is_re_compilable(".*")
-    True
-    >>> is_re_compilable(1)
-    False
-    """
+def is_re_compilable(obj):
+    '\n    Check if the object can be compiled into a regex pattern instance.\n\n    Parameters\n    ----------\n    obj : The object to check\n\n    Returns\n    -------\n    is_regex_compilable : bool\n        Whether `obj` can be compiled as a regex pattern.\n\n    Examples\n    --------\n    >>> is_re_compilable(".*")\n    True\n    >>> is_re_compilable(1)\n    False\n    '
     try:
         re.compile(obj)
     except TypeError:
@@ -181,174 +45,25 @@ def is_re_compilable(obj) -> bool:
     else:
         return True
 
+def is_array_like(obj):
+    '\n    Check if the object is array-like.\n\n    For an object to be considered array-like, it must be list-like and\n    have a `dtype` attribute.\n\n    Parameters\n    ----------\n    obj : The object to check\n\n    Returns\n    -------\n    is_array_like : bool\n        Whether `obj` has array-like properties.\n\n    Examples\n    --------\n    >>> is_array_like(np.array([1, 2, 3]))\n    True\n    >>> is_array_like(pd.Series(["a", "b"]))\n    True\n    >>> is_array_like(pd.Index(["2016-01-01"]))\n    True\n    >>> is_array_like([1, 2, 3])\n    False\n    >>> is_array_like(("a", "b"))\n    False\n    '
+    return (is_list_like(obj) and hasattr(obj, 'dtype'))
 
-def is_array_like(obj) -> bool:
-    """
-    Check if the object is array-like.
+def is_nested_list_like(obj):
+    '\n    Check if the object is list-like, and that all of its elements\n    are also list-like.\n\n    Parameters\n    ----------\n    obj : The object to check\n\n    Returns\n    -------\n    is_list_like : bool\n        Whether `obj` has list-like properties.\n\n    Examples\n    --------\n    >>> is_nested_list_like([[1, 2, 3]])\n    True\n    >>> is_nested_list_like([{1, 2, 3}, {1, 2, 3}])\n    True\n    >>> is_nested_list_like(["foo"])\n    False\n    >>> is_nested_list_like([])\n    False\n    >>> is_nested_list_like([[1, 2, 3], 1])\n    False\n\n    Notes\n    -----\n    This won\'t reliably detect whether a consumable iterator (e. g.\n    a generator) is a nested-list-like without consuming the iterator.\n    To avoid consuming it, we always return False if the outer container\n    doesn\'t define `__len__`.\n\n    See Also\n    --------\n    is_list_like\n    '
+    return (is_list_like(obj) and hasattr(obj, '__len__') and (len(obj) > 0) and all((is_list_like(item) for item in obj)))
 
-    For an object to be considered array-like, it must be list-like and
-    have a `dtype` attribute.
+def is_dict_like(obj):
+    '\n    Check if the object is dict-like.\n\n    Parameters\n    ----------\n    obj : The object to check\n\n    Returns\n    -------\n    is_dict_like : bool\n        Whether `obj` has dict-like properties.\n\n    Examples\n    --------\n    >>> is_dict_like({1: 2})\n    True\n    >>> is_dict_like([1, 2, 3])\n    False\n    >>> is_dict_like(dict)\n    False\n    >>> is_dict_like(dict())\n    True\n    '
+    dict_like_attrs = ('__getitem__', 'keys', '__contains__')
+    return (all((hasattr(obj, attr) for attr in dict_like_attrs)) and (not isinstance(obj, type)))
 
-    Parameters
-    ----------
-    obj : The object to check
+def is_named_tuple(obj):
+    '\n    Check if the object is a named tuple.\n\n    Parameters\n    ----------\n    obj : The object to check\n\n    Returns\n    -------\n    is_named_tuple : bool\n        Whether `obj` is a named tuple.\n\n    Examples\n    --------\n    >>> from collections import namedtuple\n    >>> Point = namedtuple("Point", ["x", "y"])\n    >>> p = Point(1, 2)\n    >>>\n    >>> is_named_tuple(p)\n    True\n    >>> is_named_tuple((1, 2))\n    False\n    '
+    return (isinstance(obj, tuple) and hasattr(obj, '_fields'))
 
-    Returns
-    -------
-    is_array_like : bool
-        Whether `obj` has array-like properties.
-
-    Examples
-    --------
-    >>> is_array_like(np.array([1, 2, 3]))
-    True
-    >>> is_array_like(pd.Series(["a", "b"]))
-    True
-    >>> is_array_like(pd.Index(["2016-01-01"]))
-    True
-    >>> is_array_like([1, 2, 3])
-    False
-    >>> is_array_like(("a", "b"))
-    False
-    """
-    return is_list_like(obj) and hasattr(obj, "dtype")
-
-
-def is_nested_list_like(obj) -> bool:
-    """
-    Check if the object is list-like, and that all of its elements
-    are also list-like.
-
-    Parameters
-    ----------
-    obj : The object to check
-
-    Returns
-    -------
-    is_list_like : bool
-        Whether `obj` has list-like properties.
-
-    Examples
-    --------
-    >>> is_nested_list_like([[1, 2, 3]])
-    True
-    >>> is_nested_list_like([{1, 2, 3}, {1, 2, 3}])
-    True
-    >>> is_nested_list_like(["foo"])
-    False
-    >>> is_nested_list_like([])
-    False
-    >>> is_nested_list_like([[1, 2, 3], 1])
-    False
-
-    Notes
-    -----
-    This won't reliably detect whether a consumable iterator (e. g.
-    a generator) is a nested-list-like without consuming the iterator.
-    To avoid consuming it, we always return False if the outer container
-    doesn't define `__len__`.
-
-    See Also
-    --------
-    is_list_like
-    """
-    return (
-        is_list_like(obj)
-        and hasattr(obj, "__len__")
-        and len(obj) > 0
-        and all(is_list_like(item) for item in obj)
-    )
-
-
-def is_dict_like(obj) -> bool:
-    """
-    Check if the object is dict-like.
-
-    Parameters
-    ----------
-    obj : The object to check
-
-    Returns
-    -------
-    is_dict_like : bool
-        Whether `obj` has dict-like properties.
-
-    Examples
-    --------
-    >>> is_dict_like({1: 2})
-    True
-    >>> is_dict_like([1, 2, 3])
-    False
-    >>> is_dict_like(dict)
-    False
-    >>> is_dict_like(dict())
-    True
-    """
-    dict_like_attrs = ("__getitem__", "keys", "__contains__")
-    return (
-        all(hasattr(obj, attr) for attr in dict_like_attrs)
-        # [GH 25196] exclude classes
-        and not isinstance(obj, type)
-    )
-
-
-def is_named_tuple(obj) -> bool:
-    """
-    Check if the object is a named tuple.
-
-    Parameters
-    ----------
-    obj : The object to check
-
-    Returns
-    -------
-    is_named_tuple : bool
-        Whether `obj` is a named tuple.
-
-    Examples
-    --------
-    >>> from collections import namedtuple
-    >>> Point = namedtuple("Point", ["x", "y"])
-    >>> p = Point(1, 2)
-    >>>
-    >>> is_named_tuple(p)
-    True
-    >>> is_named_tuple((1, 2))
-    False
-    """
-    return isinstance(obj, tuple) and hasattr(obj, "_fields")
-
-
-def is_hashable(obj) -> bool:
-    """
-    Return True if hash(obj) will succeed, False otherwise.
-
-    Some types will pass a test against collections.abc.Hashable but fail when
-    they are actually hashed with hash().
-
-    Distinguish between these and other types by trying the call to hash() and
-    seeing if they raise TypeError.
-
-    Returns
-    -------
-    bool
-
-    Examples
-    --------
-    >>> import collections
-    >>> a = ([],)
-    >>> isinstance(a, collections.abc.Hashable)
-    True
-    >>> is_hashable(a)
-    False
-    """
-    # Unfortunately, we can't use isinstance(obj, collections.abc.Hashable),
-    # which can be faster than calling hash. That is because numpy scalars
-    # fail this test.
-
-    # Reconsider this decision once this numpy bug is fixed:
-    # https://github.com/numpy/numpy/issues/5562
-
+def is_hashable(obj):
+    '\n    Return True if hash(obj) will succeed, False otherwise.\n\n    Some types will pass a test against collections.abc.Hashable but fail when\n    they are actually hashed with hash().\n\n    Distinguish between these and other types by trying the call to hash() and\n    seeing if they raise TypeError.\n\n    Returns\n    -------\n    bool\n\n    Examples\n    --------\n    >>> import collections\n    >>> a = ([],)\n    >>> isinstance(a, collections.abc.Hashable)\n    True\n    >>> is_hashable(a)\n    False\n    '
     try:
         hash(obj)
     except TypeError:
@@ -356,69 +71,19 @@ def is_hashable(obj) -> bool:
     else:
         return True
 
-
-def is_sequence(obj) -> bool:
-    """
-    Check if the object is a sequence of objects.
-    String types are not included as sequences here.
-
-    Parameters
-    ----------
-    obj : The object to check
-
-    Returns
-    -------
-    is_sequence : bool
-        Whether `obj` is a sequence of objects.
-
-    Examples
-    --------
-    >>> l = [1, 2, 3]
-    >>>
-    >>> is_sequence(l)
-    True
-    >>> is_sequence(iter(l))
-    False
-    """
+def is_sequence(obj):
+    '\n    Check if the object is a sequence of objects.\n    String types are not included as sequences here.\n\n    Parameters\n    ----------\n    obj : The object to check\n\n    Returns\n    -------\n    is_sequence : bool\n        Whether `obj` is a sequence of objects.\n\n    Examples\n    --------\n    >>> l = [1, 2, 3]\n    >>>\n    >>> is_sequence(l)\n    True\n    >>> is_sequence(iter(l))\n    False\n    '
     try:
-        iter(obj)  # Can iterate over it.
-        len(obj)  # Has a length associated with it.
-        return not isinstance(obj, (str, bytes))
+        iter(obj)
+        len(obj)
+        return (not isinstance(obj, (str, bytes)))
     except (TypeError, AttributeError):
         return False
 
-
 def is_dataclass(item):
-    """
-    Checks if the object is a data-class instance
-
-    Parameters
-    ----------
-    item : object
-
-    Returns
-    --------
-    is_dataclass : bool
-        True if the item is an instance of a data-class,
-        will return false if you pass the data class itself
-
-    Examples
-    --------
-    >>> from dataclasses import dataclass
-    >>> @dataclass
-    ... class Point:
-    ...     x: int
-    ...     y: int
-
-    >>> is_dataclass(Point)
-    False
-    >>> is_dataclass(Point(0,2))
-    True
-
-    """
+    '\n    Checks if the object is a data-class instance\n\n    Parameters\n    ----------\n    item : object\n\n    Returns\n    --------\n    is_dataclass : bool\n        True if the item is an instance of a data-class,\n        will return false if you pass the data class itself\n\n    Examples\n    --------\n    >>> from dataclasses import dataclass\n    >>> @dataclass\n    ... class Point:\n    ...     x: int\n    ...     y: int\n\n    >>> is_dataclass(Point)\n    False\n    >>> is_dataclass(Point(0,2))\n    True\n\n    '
     try:
         from dataclasses import is_dataclass
-
-        return is_dataclass(item) and not isinstance(item, type)
+        return (is_dataclass(item) and (not isinstance(item, type)))
     except ImportError:
         return False

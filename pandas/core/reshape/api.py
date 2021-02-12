@@ -1,4 +1,3 @@
-# flake8: noqa
 
 from pandas.core.reshape.concat import concat
 from pandas.core.reshape.melt import lreshape, melt, wide_to_long

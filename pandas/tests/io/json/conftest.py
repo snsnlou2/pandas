@@ -1,9 +1,7 @@
+
 import pytest
 
-
-@pytest.fixture(params=["split", "records", "index", "columns", "values"])
+@pytest.fixture(params=['split', 'records', 'index', 'columns', 'values'])
 def orient(request):
-    """
-    Fixture for orients excluding the table format.
-    """
+    '\n    Fixture for orients excluding the table format.\n    '
     return request.param

@@ -1,26 +1,11 @@
+
 import abc
 from typing import Pattern, Union
-
 import numpy as np
-
 from pandas._typing import Scalar
 
-
 class BaseStringArrayMethods(abc.ABC):
-    """
-    Base class for extension arrays implementing string methods.
-
-    This is where our ExtensionArrays can override the implementation of
-    Series.str.<method>. We don't expect this to work with
-    3rd-party extension arrays.
-
-    * User calls Series.str.<method>
-    * pandas extracts the extension array from the Series
-    * pandas calls ``extension_array._str_<method>(*args, **kwargs)``
-    * pandas wraps the result, to return to the user.
-
-    See :ref:`Series.str` for the docstring of each method.
-    """
+    "\n    Base class for extension arrays implementing string methods.\n\n    This is where our ExtensionArrays can override the implementation of\n    Series.str.<method>. We don't expect this to work with\n    3rd-party extension arrays.\n\n    * User calls Series.str.<method>\n    * pandas extracts the extension array from the Series\n    * pandas calls ``extension_array._str_<method>(*args, **kwargs)``\n    * pandas wraps the result, to return to the user.\n\n    See :ref:`Series.str` for the docstring of each method.\n    "
 
     def _str_getitem(self, key):
         if isinstance(key, slice):
@@ -33,7 +18,7 @@ class BaseStringArrayMethods(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def _str_pad(self, width, side="left", fillchar=" "):
+    def _str_pad(self, width, side='left', fillchar=' '):
         pass
 
     @abc.abstractmethod
@@ -49,7 +34,7 @@ class BaseStringArrayMethods(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def _str_replace(self, pat, repl, n=-1, case=None, flags=0, regex=True):
+    def _str_replace(self, pat, repl, n=(- 1), case=None, flags=0, regex=True):
         pass
 
     @abc.abstractmethod
@@ -57,27 +42,15 @@ class BaseStringArrayMethods(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def _str_match(
-        self,
-        pat: Union[str, Pattern],
-        case: bool = True,
-        flags: int = 0,
-        na: Scalar = np.nan,
-    ):
+    def _str_match(self, pat, case=True, flags=0, na=np.nan):
         pass
 
     @abc.abstractmethod
-    def _str_fullmatch(
-        self,
-        pat: Union[str, Pattern],
-        case: bool = True,
-        flags: int = 0,
-        na: Scalar = np.nan,
-    ):
+    def _str_fullmatch(self, pat, case=True, flags=0, na=np.nan):
         pass
 
     @abc.abstractmethod
-    def _str_encode(self, encoding, errors="strict"):
+    def _str_encode(self, encoding, errors='strict'):
         pass
 
     @abc.abstractmethod
@@ -137,7 +110,7 @@ class BaseStringArrayMethods(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def _str_get_dummies(self, sep="|"):
+    def _str_get_dummies(self, sep='|'):
         pass
 
     @abc.abstractmethod
@@ -217,9 +190,9 @@ class BaseStringArrayMethods(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def _str_split(self, pat=None, n=-1, expand=False):
+    def _str_split(self, pat=None, n=(- 1), expand=False):
         pass
 
     @abc.abstractmethod
-    def _str_rsplit(self, pat=None, n=-1):
+    def _str_rsplit(self, pat=None, n=(- 1)):
         pass

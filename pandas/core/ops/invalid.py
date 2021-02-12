@@ -1,56 +1,24 @@
-"""
-Templates for invalid operations.
-"""
-import operator
 
+'\nTemplates for invalid operations.\n'
+import operator
 import numpy as np
 
-
 def invalid_comparison(left, right, op):
-    """
-    If a comparison has mismatched types and is not necessarily meaningful,
-    follow python3 conventions by:
-
-        - returning all-False for equality
-        - returning all-True for inequality
-        - raising TypeError otherwise
-
-    Parameters
-    ----------
-    left : array-like
-    right : scalar, array-like
-    op : operator.{eq, ne, lt, le, gt}
-
-    Raises
-    ------
-    TypeError : on inequality comparisons
-    """
-    if op is operator.eq:
+    '\n    If a comparison has mismatched types and is not necessarily meaningful,\n    follow python3 conventions by:\n\n        - returning all-False for equality\n        - returning all-True for inequality\n        - raising TypeError otherwise\n\n    Parameters\n    ----------\n    left : array-like\n    right : scalar, array-like\n    op : operator.{eq, ne, lt, le, gt}\n\n    Raises\n    ------\n    TypeError : on inequality comparisons\n    '
+    if (op is operator.eq):
         res_values = np.zeros(left.shape, dtype=bool)
-    elif op is operator.ne:
+    elif (op is operator.ne):
         res_values = np.ones(left.shape, dtype=bool)
     else:
         typ = type(right).__name__
-        raise TypeError(f"Invalid comparison between dtype={left.dtype} and {typ}")
+        raise TypeError(f'Invalid comparison between dtype={left.dtype} and {typ}')
     return res_values
 
-
-def make_invalid_op(name: str):
-    """
-    Return a binary method that always raises a TypeError.
-
-    Parameters
-    ----------
-    name : str
-
-    Returns
-    -------
-    invalid_op : function
-    """
+def make_invalid_op(name):
+    '\n    Return a binary method that always raises a TypeError.\n\n    Parameters\n    ----------\n    name : str\n\n    Returns\n    -------\n    invalid_op : function\n    '
 
     def invalid_op(self, other=None):
         typ = type(self).__name__
-        raise TypeError(f"cannot perform {name} with this index type: {typ}")
-
+        raise TypeError(f'cannot perform {name} with this index type: {typ}')
     invalid_op.__name__ = name
     return invalid_op

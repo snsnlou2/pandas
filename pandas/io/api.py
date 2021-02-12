@@ -1,9 +1,5 @@
-"""
-Data IO api
-"""
 
-# flake8: noqa
-
+'\nData IO api\n'
 from pandas.io.clipboards import read_clipboard
 from pandas.io.excel import ExcelFile, ExcelWriter, read_excel
 from pandas.io.feather_format import read_feather

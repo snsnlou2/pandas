@@ -1,45 +1,33 @@
-from datetime import datetime, timedelta, timezone
 
+from datetime import datetime, timedelta, timezone
 from dateutil.tz import gettz, tzlocal, tzutc
 import numpy as np
 import pytz
-
 from pandas import Timestamp
+_tzs = [None, pytz.timezone('Europe/Amsterdam'), gettz('US/Central'), pytz.UTC, tzutc(), timezone(timedelta(minutes=60)), tzlocal()]
 
-# One case for each type of tzinfo object that has its own code path
-#  in tzconversion code.
-_tzs = [
-    None,
-    pytz.timezone("Europe/Amsterdam"),
-    gettz("US/Central"),
-    pytz.UTC,
-    tzutc(),
-    timezone(timedelta(minutes=60)),
-    tzlocal(),
-]
+class TimestampConstruction():
 
-
-class TimestampConstruction:
     def setup(self):
-        self.npdatetime64 = np.datetime64("2020-01-01 00:00:00")
+        self.npdatetime64 = np.datetime64('2020-01-01 00:00:00')
         self.dttime_unaware = datetime(2020, 1, 1, 0, 0, 0)
         self.dttime_aware = datetime(2020, 1, 1, 0, 0, 0, 0, pytz.UTC)
-        self.ts = Timestamp("2020-01-01 00:00:00")
+        self.ts = Timestamp('2020-01-01 00:00:00')
 
     def time_parse_iso8601_no_tz(self):
-        Timestamp("2017-08-25 08:16:14")
+        Timestamp('2017-08-25 08:16:14')
 
     def time_parse_iso8601_tz(self):
-        Timestamp("2017-08-25 08:16:14-0500")
+        Timestamp('2017-08-25 08:16:14-0500')
 
     def time_parse_dateutil(self):
-        Timestamp("2017/08/25 08:16:14 AM")
+        Timestamp('2017/08/25 08:16:14 AM')
 
     def time_parse_today(self):
-        Timestamp("today")
+        Timestamp('today')
 
     def time_parse_now(self):
-        Timestamp("now")
+        Timestamp('now')
 
     def time_fromordinal(self):
         Timestamp.fromordinal(730120)
@@ -59,14 +47,13 @@ class TimestampConstruction:
     def time_from_pd_timestamp(self):
         Timestamp(self.ts)
 
-
-class TimestampProperties:
-    _freqs = [None, "B"]
+class TimestampProperties():
+    _freqs = [None, 'B']
     params = [_tzs, _freqs]
-    param_names = ["tz", "freq"]
+    param_names = ['tz', 'freq']
 
     def setup(self, tz, freq):
-        self.ts = Timestamp("2017-08-25 08:16:14", tzinfo=tz, freq=freq)
+        self.ts = Timestamp('2017-08-25 08:16:14', tzinfo=tz, freq=freq)
 
     def time_tz(self, tz, freq):
         self.ts.tz
@@ -119,16 +106,15 @@ class TimestampProperties:
     def time_weekday_name(self, tz, freq):
         self.ts.day_name()
 
-
-class TimestampOps:
+class TimestampOps():
     params = _tzs
-    param_names = ["tz"]
+    param_names = ['tz']
 
     def setup(self, tz):
-        self.ts = Timestamp("2017-08-25 08:16:14", tz=tz)
+        self.ts = Timestamp('2017-08-25 08:16:14', tz=tz)
 
     def time_replace_tz(self, tz):
-        self.ts.replace(tzinfo=pytz.timezone("US/Eastern"))
+        self.ts.replace(tzinfo=pytz.timezone('US/Eastern'))
 
     def time_replace_None(self, tz):
         self.ts.replace(tzinfo=None)
@@ -140,27 +126,27 @@ class TimestampOps:
         self.ts.normalize()
 
     def time_tz_convert(self, tz):
-        if self.ts.tz is not None:
+        if (self.ts.tz is not None):
             self.ts.tz_convert(tz)
 
     def time_tz_localize(self, tz):
-        if self.ts.tz is None:
+        if (self.ts.tz is None):
             self.ts.tz_localize(tz)
 
     def time_to_julian_date(self, tz):
         self.ts.to_julian_date()
 
     def time_floor(self, tz):
-        self.ts.floor("5T")
+        self.ts.floor('5T')
 
     def time_ceil(self, tz):
-        self.ts.ceil("5T")
+        self.ts.ceil('5T')
 
+class TimestampAcrossDst():
 
-class TimestampAcrossDst:
     def setup(self):
         dt = datetime(2016, 3, 27, 1)
-        self.tzinfo = pytz.timezone("CET").localize(dt, is_dst=False).tzinfo
+        self.tzinfo = pytz.timezone('CET').localize(dt, is_dst=False).tzinfo
         self.ts2 = Timestamp(dt)
 
     def time_replace_across_dst(self):

@@ -1,110 +1,30 @@
+
 from typing import Optional, Tuple
-
 import numpy as np
-
 from pandas.core.algorithms import unique1d
-from pandas.core.arrays.categorical import (
-    Categorical,
-    CategoricalDtype,
-    recode_for_categories,
-)
+from pandas.core.arrays.categorical import Categorical, CategoricalDtype, recode_for_categories
 from pandas.core.indexes.api import CategoricalIndex
 
-
-def recode_for_groupby(
-    c: Categorical, sort: bool, observed: bool
-) -> Tuple[Categorical, Optional[Categorical]]:
-    """
-    Code the categories to ensure we can groupby for categoricals.
-
-    If observed=True, we return a new Categorical with the observed
-    categories only.
-
-    If sort=False, return a copy of self, coded with categories as
-    returned by .unique(), followed by any categories not appearing in
-    the data. If sort=True, return self.
-
-    This method is needed solely to ensure the categorical index of the
-    GroupBy result has categories in the order of appearance in the data
-    (GH-8868).
-
-    Parameters
-    ----------
-    c : Categorical
-    sort : boolean
-        The value of the sort parameter groupby was called with.
-    observed : boolean
-        Account only for the observed values
-
-    Returns
-    -------
-    New Categorical
-        If sort=False, the new categories are set to the order of
-        appearance in codes (unless ordered=True, in which case the
-        original order is preserved), followed by any unrepresented
-        categories in the original order.
-    Categorical or None
-        If we are observed, return the original categorical, otherwise None
-    """
-    # we only care about observed values
+def recode_for_groupby(c, sort, observed):
+    '\n    Code the categories to ensure we can groupby for categoricals.\n\n    If observed=True, we return a new Categorical with the observed\n    categories only.\n\n    If sort=False, return a copy of self, coded with categories as\n    returned by .unique(), followed by any categories not appearing in\n    the data. If sort=True, return self.\n\n    This method is needed solely to ensure the categorical index of the\n    GroupBy result has categories in the order of appearance in the data\n    (GH-8868).\n\n    Parameters\n    ----------\n    c : Categorical\n    sort : boolean\n        The value of the sort parameter groupby was called with.\n    observed : boolean\n        Account only for the observed values\n\n    Returns\n    -------\n    New Categorical\n        If sort=False, the new categories are set to the order of\n        appearance in codes (unless ordered=True, in which case the\n        original order is preserved), followed by any unrepresented\n        categories in the original order.\n    Categorical or None\n        If we are observed, return the original categorical, otherwise None\n    '
     if observed:
-        # In cases with c.ordered, this is equivalent to
-        #  return c.remove_unused_categories(), c
-
         unique_codes = unique1d(c.codes)
-
-        take_codes = unique_codes[unique_codes != -1]
+        take_codes = unique_codes[(unique_codes != (- 1))]
         if c.ordered:
             take_codes = np.sort(take_codes)
-
-        # we recode according to the uniques
         categories = c.categories.take(take_codes)
         codes = recode_for_categories(c.codes, c.categories, categories)
-
-        # return a new categorical that maps our new codes
-        # and categories
         dtype = CategoricalDtype(categories, ordered=c.ordered)
-        return Categorical(codes, dtype=dtype, fastpath=True), c
-
-    # Already sorted according to c.categories; all is fine
+        return (Categorical(codes, dtype=dtype, fastpath=True), c)
     if sort:
-        return c, None
-
-    # sort=False should order groups in as-encountered order (GH-8868)
+        return (c, None)
     cat = c.unique()
+    cat = cat.add_categories(c.categories[(~ c.categories.isin(cat.categories))])
+    return (c.reorder_categories(cat.categories), None)
 
-    # But for groupby to work, all categories should be present,
-    # including those missing from the data (GH-13179), which .unique()
-    # above dropped
-    cat = cat.add_categories(c.categories[~c.categories.isin(cat.categories)])
-
-    return c.reorder_categories(cat.categories), None
-
-
-def recode_from_groupby(
-    c: Categorical, sort: bool, ci: CategoricalIndex
-) -> CategoricalIndex:
-    """
-    Reverse the codes_to_groupby to account for sort / observed.
-
-    Parameters
-    ----------
-    c : Categorical
-    sort : boolean
-        The value of the sort parameter groupby was called with.
-    ci : CategoricalIndex
-        The codes / categories to recode
-
-    Returns
-    -------
-    CategoricalIndex
-    """
-    # we re-order to the original category orderings
+def recode_from_groupby(c, sort, ci):
+    '\n    Reverse the codes_to_groupby to account for sort / observed.\n\n    Parameters\n    ----------\n    c : Categorical\n    sort : boolean\n        The value of the sort parameter groupby was called with.\n    ci : CategoricalIndex\n        The codes / categories to recode\n\n    Returns\n    -------\n    CategoricalIndex\n    '
     if sort:
-        # error: "CategoricalIndex" has no attribute "set_categories"
-        return ci.set_categories(c.categories)  # type: ignore[attr-defined]
-
-    # we are not sorting, so add unobserved to the end
-    new_cats = c.categories[~c.categories.isin(ci.categories)]
-    # error: "CategoricalIndex" has no attribute "add_categories"
-    return ci.add_categories(new_cats)  # type: ignore[attr-defined]
+        return ci.set_categories(c.categories)
+    new_cats = c.categories[(~ c.categories.isin(ci.categories))]
+    return ci.add_categories(new_cats)

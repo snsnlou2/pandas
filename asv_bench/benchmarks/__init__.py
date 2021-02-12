@@ -1,1 +1,2 @@
-"""Pandas benchmarks."""
+
+'Pandas benchmarks.'

@@ -1,14 +1,11 @@
+
 import contextlib
-
 import pytest
-
 import pandas as pd
 import pandas._testing as tm
 from pandas.core import accessor
 
-
 def test_dirname_mixin():
-    # GH37173
 
     class X(accessor.DirNamesMixin):
         x = 1
@@ -16,19 +13,14 @@ def test_dirname_mixin():
 
         def __init__(self):
             self.z = 3
-
-    result = [attr_name for attr_name in dir(X()) if not attr_name.startswith("_")]
-
-    assert result == ["x", "z"]
-
+    result = [attr_name for attr_name in dir(X()) if (not attr_name.startswith('_'))]
+    assert (result == ['x', 'z'])
 
 @contextlib.contextmanager
 def ensure_removed(obj, attr):
-    """Ensure that an attribute added to 'obj' during the test is
-    removed when we're done
-    """
+    "Ensure that an attribute added to 'obj' during the test is\n    removed when we're done\n    "
     try:
-        yield
+        (yield)
     finally:
         try:
             delattr(obj, attr)
@@ -36,11 +28,11 @@ def ensure_removed(obj, attr):
             pass
         obj._accessors.discard(attr)
 
+class MyAccessor():
 
-class MyAccessor:
     def __init__(self, obj):
         self.obj = obj
-        self.item = "item"
+        self.item = 'item'
 
     @property
     def prop(self):
@@ -49,61 +41,46 @@ class MyAccessor:
     def method(self):
         return self.item
 
-
-@pytest.mark.parametrize(
-    "obj, registrar",
-    [
-        (pd.Series, pd.api.extensions.register_series_accessor),
-        (pd.DataFrame, pd.api.extensions.register_dataframe_accessor),
-        (pd.Index, pd.api.extensions.register_index_accessor),
-    ],
-)
+@pytest.mark.parametrize('obj, registrar', [(pd.Series, pd.api.extensions.register_series_accessor), (pd.DataFrame, pd.api.extensions.register_dataframe_accessor), (pd.Index, pd.api.extensions.register_index_accessor)])
 def test_register(obj, registrar):
-    with ensure_removed(obj, "mine"):
+    with ensure_removed(obj, 'mine'):
         before = set(dir(obj))
-        registrar("mine")(MyAccessor)
-        o = obj([]) if obj is not pd.Series else obj([], dtype=object)
-        assert o.mine.prop == "item"
+        registrar('mine')(MyAccessor)
+        o = (obj([]) if (obj is not pd.Series) else obj([], dtype=object))
+        assert (o.mine.prop == 'item')
         after = set(dir(obj))
-        assert (before ^ after) == {"mine"}
-        assert "mine" in obj._accessors
-
+        assert ((before ^ after) == {'mine'})
+        assert ('mine' in obj._accessors)
 
 def test_accessor_works():
-    with ensure_removed(pd.Series, "mine"):
-        pd.api.extensions.register_series_accessor("mine")(MyAccessor)
-
+    with ensure_removed(pd.Series, 'mine'):
+        pd.api.extensions.register_series_accessor('mine')(MyAccessor)
         s = pd.Series([1, 2])
-        assert s.mine.obj is s
-
-        assert s.mine.prop == "item"
-        assert s.mine.method() == "item"
-
+        assert (s.mine.obj is s)
+        assert (s.mine.prop == 'item')
+        assert (s.mine.method() == 'item')
 
 def test_overwrite_warns():
-    # Need to restore mean
     mean = pd.Series.mean
     try:
         with tm.assert_produces_warning(UserWarning) as w:
-            pd.api.extensions.register_series_accessor("mean")(MyAccessor)
+            pd.api.extensions.register_series_accessor('mean')(MyAccessor)
             s = pd.Series([1, 2])
-            assert s.mean.prop == "item"
+            assert (s.mean.prop == 'item')
         msg = str(w[0].message)
-        assert "mean" in msg
-        assert "MyAccessor" in msg
-        assert "Series" in msg
+        assert ('mean' in msg)
+        assert ('MyAccessor' in msg)
+        assert ('Series' in msg)
     finally:
         pd.Series.mean = mean
 
-
 def test_raises_attribute_error():
+    with ensure_removed(pd.Series, 'bad'):
 
-    with ensure_removed(pd.Series, "bad"):
+        @pd.api.extensions.register_series_accessor('bad')
+        class Bad():
 
-        @pd.api.extensions.register_series_accessor("bad")
-        class Bad:
             def __init__(self, data):
-                raise AttributeError("whoops")
-
-        with pytest.raises(AttributeError, match="whoops"):
+                raise AttributeError('whoops')
+        with pytest.raises(AttributeError, match='whoops'):
             pd.Series([], dtype=object).bad

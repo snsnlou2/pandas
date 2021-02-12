@@ -1,1800 +1,226 @@
+
 import importlib
 from typing import TYPE_CHECKING, Optional, Sequence, Tuple, Union
-
 from pandas._config import get_option
-
 from pandas._typing import Label
 from pandas.util._decorators import Appender, Substitution
-
 from pandas.core.dtypes.common import is_integer, is_list_like
 from pandas.core.dtypes.generic import ABCDataFrame, ABCSeries
-
 from pandas.core.base import PandasObject
-
 if TYPE_CHECKING:
     from pandas import DataFrame
 
-
-def hist_series(
-    self,
-    by=None,
-    ax=None,
-    grid: bool = True,
-    xlabelsize: Optional[int] = None,
-    xrot: Optional[float] = None,
-    ylabelsize: Optional[int] = None,
-    yrot: Optional[float] = None,
-    figsize: Optional[Tuple[int, int]] = None,
-    bins: Union[int, Sequence[int]] = 10,
-    backend: Optional[str] = None,
-    legend: bool = False,
-    **kwargs,
-):
-    """
-    Draw histogram of the input series using matplotlib.
-
-    Parameters
-    ----------
-    by : object, optional
-        If passed, then used to form histograms for separate groups.
-    ax : matplotlib axis object
-        If not passed, uses gca().
-    grid : bool, default True
-        Whether to show axis grid lines.
-    xlabelsize : int, default None
-        If specified changes the x-axis label size.
-    xrot : float, default None
-        Rotation of x axis labels.
-    ylabelsize : int, default None
-        If specified changes the y-axis label size.
-    yrot : float, default None
-        Rotation of y axis labels.
-    figsize : tuple, default None
-        Figure size in inches by default.
-    bins : int or sequence, default 10
-        Number of histogram bins to be used. If an integer is given, bins + 1
-        bin edges are calculated and returned. If bins is a sequence, gives
-        bin edges, including left edge of first bin and right edge of last
-        bin. In this case, bins is returned unmodified.
-    backend : str, default None
-        Backend to use instead of the backend specified in the option
-        ``plotting.backend``. For instance, 'matplotlib'. Alternatively, to
-        specify the ``plotting.backend`` for the whole session, set
-        ``pd.options.plotting.backend``.
-
-        .. versionadded:: 1.0.0
-
-    legend : bool, default False
-        Whether to show the legend.
-
-        .. versionadded:: 1.1.0
-
-    **kwargs
-        To be passed to the actual plotting function.
-
-    Returns
-    -------
-    matplotlib.AxesSubplot
-        A histogram plot.
-
-    See Also
-    --------
-    matplotlib.axes.Axes.hist : Plot a histogram using matplotlib.
-    """
+def hist_series(self, by=None, ax=None, grid=True, xlabelsize=None, xrot=None, ylabelsize=None, yrot=None, figsize=None, bins=10, backend=None, legend=False, **kwargs):
+    "\n    Draw histogram of the input series using matplotlib.\n\n    Parameters\n    ----------\n    by : object, optional\n        If passed, then used to form histograms for separate groups.\n    ax : matplotlib axis object\n        If not passed, uses gca().\n    grid : bool, default True\n        Whether to show axis grid lines.\n    xlabelsize : int, default None\n        If specified changes the x-axis label size.\n    xrot : float, default None\n        Rotation of x axis labels.\n    ylabelsize : int, default None\n        If specified changes the y-axis label size.\n    yrot : float, default None\n        Rotation of y axis labels.\n    figsize : tuple, default None\n        Figure size in inches by default.\n    bins : int or sequence, default 10\n        Number of histogram bins to be used. If an integer is given, bins + 1\n        bin edges are calculated and returned. If bins is a sequence, gives\n        bin edges, including left edge of first bin and right edge of last\n        bin. In this case, bins is returned unmodified.\n    backend : str, default None\n        Backend to use instead of the backend specified in the option\n        ``plotting.backend``. For instance, 'matplotlib'. Alternatively, to\n        specify the ``plotting.backend`` for the whole session, set\n        ``pd.options.plotting.backend``.\n\n        .. versionadded:: 1.0.0\n\n    legend : bool, default False\n        Whether to show the legend.\n\n        .. versionadded:: 1.1.0\n\n    **kwargs\n        To be passed to the actual plotting function.\n\n    Returns\n    -------\n    matplotlib.AxesSubplot\n        A histogram plot.\n\n    See Also\n    --------\n    matplotlib.axes.Axes.hist : Plot a histogram using matplotlib.\n    "
     plot_backend = _get_plot_backend(backend)
-    return plot_backend.hist_series(
-        self,
-        by=by,
-        ax=ax,
-        grid=grid,
-        xlabelsize=xlabelsize,
-        xrot=xrot,
-        ylabelsize=ylabelsize,
-        yrot=yrot,
-        figsize=figsize,
-        bins=bins,
-        legend=legend,
-        **kwargs,
-    )
+    return plot_backend.hist_series(self, by=by, ax=ax, grid=grid, xlabelsize=xlabelsize, xrot=xrot, ylabelsize=ylabelsize, yrot=yrot, figsize=figsize, bins=bins, legend=legend, **kwargs)
 
-
-def hist_frame(
-    data: "DataFrame",
-    column: Union[Label, Sequence[Label]] = None,
-    by=None,
-    grid: bool = True,
-    xlabelsize: Optional[int] = None,
-    xrot: Optional[float] = None,
-    ylabelsize: Optional[int] = None,
-    yrot: Optional[float] = None,
-    ax=None,
-    sharex: bool = False,
-    sharey: bool = False,
-    figsize: Optional[Tuple[int, int]] = None,
-    layout: Optional[Tuple[int, int]] = None,
-    bins: Union[int, Sequence[int]] = 10,
-    backend: Optional[str] = None,
-    legend: bool = False,
-    **kwargs,
-):
-    """
-    Make a histogram of the DataFrame's.
-
-    A `histogram`_ is a representation of the distribution of data.
-    This function calls :meth:`matplotlib.pyplot.hist`, on each series in
-    the DataFrame, resulting in one histogram per column.
-
-    .. _histogram: https://en.wikipedia.org/wiki/Histogram
-
-    Parameters
-    ----------
-    data : DataFrame
-        The pandas object holding the data.
-    column : str or sequence
-        If passed, will be used to limit data to a subset of columns.
-    by : object, optional
-        If passed, then used to form histograms for separate groups.
-    grid : bool, default True
-        Whether to show axis grid lines.
-    xlabelsize : int, default None
-        If specified changes the x-axis label size.
-    xrot : float, default None
-        Rotation of x axis labels. For example, a value of 90 displays the
-        x labels rotated 90 degrees clockwise.
-    ylabelsize : int, default None
-        If specified changes the y-axis label size.
-    yrot : float, default None
-        Rotation of y axis labels. For example, a value of 90 displays the
-        y labels rotated 90 degrees clockwise.
-    ax : Matplotlib axes object, default None
-        The axes to plot the histogram on.
-    sharex : bool, default True if ax is None else False
-        In case subplots=True, share x axis and set some x axis labels to
-        invisible; defaults to True if ax is None otherwise False if an ax
-        is passed in.
-        Note that passing in both an ax and sharex=True will alter all x axis
-        labels for all subplots in a figure.
-    sharey : bool, default False
-        In case subplots=True, share y axis and set some y axis labels to
-        invisible.
-    figsize : tuple
-        The size in inches of the figure to create. Uses the value in
-        `matplotlib.rcParams` by default.
-    layout : tuple, optional
-        Tuple of (rows, columns) for the layout of the histograms.
-    bins : int or sequence, default 10
-        Number of histogram bins to be used. If an integer is given, bins + 1
-        bin edges are calculated and returned. If bins is a sequence, gives
-        bin edges, including left edge of first bin and right edge of last
-        bin. In this case, bins is returned unmodified.
-
-    backend : str, default None
-        Backend to use instead of the backend specified in the option
-        ``plotting.backend``. For instance, 'matplotlib'. Alternatively, to
-        specify the ``plotting.backend`` for the whole session, set
-        ``pd.options.plotting.backend``.
-
-        .. versionadded:: 1.0.0
-
-    legend : bool, default False
-        Whether to show the legend.
-
-        .. versionadded:: 1.1.0
-
-    **kwargs
-        All other plotting keyword arguments to be passed to
-        :meth:`matplotlib.pyplot.hist`.
-
-    Returns
-    -------
-    matplotlib.AxesSubplot or numpy.ndarray of them
-
-    See Also
-    --------
-    matplotlib.pyplot.hist : Plot a histogram using matplotlib.
-
-    Examples
-    --------
-    This example draws a histogram based on the length and width of
-    some animals, displayed in three bins
-
-    .. plot::
-        :context: close-figs
-
-        >>> df = pd.DataFrame({
-        ...     'length': [1.5, 0.5, 1.2, 0.9, 3],
-        ...     'width': [0.7, 0.2, 0.15, 0.2, 1.1]
-        ...     }, index=['pig', 'rabbit', 'duck', 'chicken', 'horse'])
-        >>> hist = df.hist(bins=3)
-    """
+def hist_frame(data, column=None, by=None, grid=True, xlabelsize=None, xrot=None, ylabelsize=None, yrot=None, ax=None, sharex=False, sharey=False, figsize=None, layout=None, bins=10, backend=None, legend=False, **kwargs):
+    "\n    Make a histogram of the DataFrame's.\n\n    A `histogram`_ is a representation of the distribution of data.\n    This function calls :meth:`matplotlib.pyplot.hist`, on each series in\n    the DataFrame, resulting in one histogram per column.\n\n    .. _histogram: https://en.wikipedia.org/wiki/Histogram\n\n    Parameters\n    ----------\n    data : DataFrame\n        The pandas object holding the data.\n    column : str or sequence\n        If passed, will be used to limit data to a subset of columns.\n    by : object, optional\n        If passed, then used to form histograms for separate groups.\n    grid : bool, default True\n        Whether to show axis grid lines.\n    xlabelsize : int, default None\n        If specified changes the x-axis label size.\n    xrot : float, default None\n        Rotation of x axis labels. For example, a value of 90 displays the\n        x labels rotated 90 degrees clockwise.\n    ylabelsize : int, default None\n        If specified changes the y-axis label size.\n    yrot : float, default None\n        Rotation of y axis labels. For example, a value of 90 displays the\n        y labels rotated 90 degrees clockwise.\n    ax : Matplotlib axes object, default None\n        The axes to plot the histogram on.\n    sharex : bool, default True if ax is None else False\n        In case subplots=True, share x axis and set some x axis labels to\n        invisible; defaults to True if ax is None otherwise False if an ax\n        is passed in.\n        Note that passing in both an ax and sharex=True will alter all x axis\n        labels for all subplots in a figure.\n    sharey : bool, default False\n        In case subplots=True, share y axis and set some y axis labels to\n        invisible.\n    figsize : tuple\n        The size in inches of the figure to create. Uses the value in\n        `matplotlib.rcParams` by default.\n    layout : tuple, optional\n        Tuple of (rows, columns) for the layout of the histograms.\n    bins : int or sequence, default 10\n        Number of histogram bins to be used. If an integer is given, bins + 1\n        bin edges are calculated and returned. If bins is a sequence, gives\n        bin edges, including left edge of first bin and right edge of last\n        bin. In this case, bins is returned unmodified.\n\n    backend : str, default None\n        Backend to use instead of the backend specified in the option\n        ``plotting.backend``. For instance, 'matplotlib'. Alternatively, to\n        specify the ``plotting.backend`` for the whole session, set\n        ``pd.options.plotting.backend``.\n\n        .. versionadded:: 1.0.0\n\n    legend : bool, default False\n        Whether to show the legend.\n\n        .. versionadded:: 1.1.0\n\n    **kwargs\n        All other plotting keyword arguments to be passed to\n        :meth:`matplotlib.pyplot.hist`.\n\n    Returns\n    -------\n    matplotlib.AxesSubplot or numpy.ndarray of them\n\n    See Also\n    --------\n    matplotlib.pyplot.hist : Plot a histogram using matplotlib.\n\n    Examples\n    --------\n    This example draws a histogram based on the length and width of\n    some animals, displayed in three bins\n\n    .. plot::\n        :context: close-figs\n\n        >>> df = pd.DataFrame({\n        ...     'length': [1.5, 0.5, 1.2, 0.9, 3],\n        ...     'width': [0.7, 0.2, 0.15, 0.2, 1.1]\n        ...     }, index=['pig', 'rabbit', 'duck', 'chicken', 'horse'])\n        >>> hist = df.hist(bins=3)\n    "
     plot_backend = _get_plot_backend(backend)
-    return plot_backend.hist_frame(
-        data,
-        column=column,
-        by=by,
-        grid=grid,
-        xlabelsize=xlabelsize,
-        xrot=xrot,
-        ylabelsize=ylabelsize,
-        yrot=yrot,
-        ax=ax,
-        sharex=sharex,
-        sharey=sharey,
-        figsize=figsize,
-        layout=layout,
-        legend=legend,
-        bins=bins,
-        **kwargs,
-    )
+    return plot_backend.hist_frame(data, column=column, by=by, grid=grid, xlabelsize=xlabelsize, xrot=xrot, ylabelsize=ylabelsize, yrot=yrot, ax=ax, sharex=sharex, sharey=sharey, figsize=figsize, layout=layout, legend=legend, bins=bins, **kwargs)
+_boxplot_doc = "\nMake a box plot from DataFrame columns.\n\nMake a box-and-whisker plot from DataFrame columns, optionally grouped\nby some other columns. A box plot is a method for graphically depicting\ngroups of numerical data through their quartiles.\nThe box extends from the Q1 to Q3 quartile values of the data,\nwith a line at the median (Q2). The whiskers extend from the edges\nof box to show the range of the data. By default, they extend no more than\n`1.5 * IQR (IQR = Q3 - Q1)` from the edges of the box, ending at the farthest\ndata point within that interval. Outliers are plotted as separate dots.\n\nFor further details see\nWikipedia's entry for `boxplot <https://en.wikipedia.org/wiki/Box_plot>`_.\n\nParameters\n----------\ncolumn : str or list of str, optional\n    Column name or list of names, or vector.\n    Can be any valid input to :meth:`pandas.DataFrame.groupby`.\nby : str or array-like, optional\n    Column in the DataFrame to :meth:`pandas.DataFrame.groupby`.\n    One box-plot will be done per value of columns in `by`.\nax : object of class matplotlib.axes.Axes, optional\n    The matplotlib axes to be used by boxplot.\nfontsize : float or str\n    Tick label font size in points or as a string (e.g., `large`).\nrot : int or float, default 0\n    The rotation angle of labels (in degrees)\n    with respect to the screen coordinate system.\ngrid : bool, default True\n    Setting this to True will show the grid.\nfigsize : A tuple (width, height) in inches\n    The size of the figure to create in matplotlib.\nlayout : tuple (rows, columns), optional\n    For example, (3, 5) will display the subplots\n    using 3 columns and 5 rows, starting from the top-left.\nreturn_type : {'axes', 'dict', 'both'} or None, default 'axes'\n    The kind of object to return. The default is ``axes``.\n\n    * 'axes' returns the matplotlib axes the boxplot is drawn on.\n    * 'dict' returns a dictionary whose values are the matplotlib\n      Lines of the boxplot.\n    * 'both' returns a namedtuple with the axes and dict.\n    * when grouping with ``by``, a Series mapping columns to\n      ``return_type`` is returned.\n\n      If ``return_type`` is `None`, a NumPy array\n      of axes with the same shape as ``layout`` is returned.\n%(backend)s\n**kwargs\n    All other plotting keyword arguments to be passed to\n    :func:`matplotlib.pyplot.boxplot`.\n\nReturns\n-------\nresult\n    See Notes.\n\nSee Also\n--------\nSeries.plot.hist: Make a histogram.\nmatplotlib.pyplot.boxplot : Matplotlib equivalent plot.\n\nNotes\n-----\nThe return type depends on the `return_type` parameter:\n\n* 'axes' : object of class matplotlib.axes.Axes\n* 'dict' : dict of matplotlib.lines.Line2D objects\n* 'both' : a namedtuple with structure (ax, lines)\n\nFor data grouped with ``by``, return a Series of the above or a numpy\narray:\n\n* :class:`~pandas.Series`\n* :class:`~numpy.array` (for ``return_type = None``)\n\nUse ``return_type='dict'`` when you want to tweak the appearance\nof the lines after plotting. In this case a dict containing the Lines\nmaking up the boxes, caps, fliers, medians, and whiskers is returned.\n\nExamples\n--------\n\nBoxplots can be created for every column in the dataframe\nby ``df.boxplot()`` or indicating the columns to be used:\n\n.. plot::\n    :context: close-figs\n\n    >>> np.random.seed(1234)\n    >>> df = pd.DataFrame(np.random.randn(10, 4),\n    ...                   columns=['Col1', 'Col2', 'Col3', 'Col4'])\n    >>> boxplot = df.boxplot(column=['Col1', 'Col2', 'Col3'])\n\nBoxplots of variables distributions grouped by the values of a third\nvariable can be created using the option ``by``. For instance:\n\n.. plot::\n    :context: close-figs\n\n    >>> df = pd.DataFrame(np.random.randn(10, 2),\n    ...                   columns=['Col1', 'Col2'])\n    >>> df['X'] = pd.Series(['A', 'A', 'A', 'A', 'A',\n    ...                      'B', 'B', 'B', 'B', 'B'])\n    >>> boxplot = df.boxplot(by='X')\n\nA list of strings (i.e. ``['X', 'Y']``) can be passed to boxplot\nin order to group the data by combination of the variables in the x-axis:\n\n.. plot::\n    :context: close-figs\n\n    >>> df = pd.DataFrame(np.random.randn(10, 3),\n    ...                   columns=['Col1', 'Col2', 'Col3'])\n    >>> df['X'] = pd.Series(['A', 'A', 'A', 'A', 'A',\n    ...                      'B', 'B', 'B', 'B', 'B'])\n    >>> df['Y'] = pd.Series(['A', 'B', 'A', 'B', 'A',\n    ...                      'B', 'A', 'B', 'A', 'B'])\n    >>> boxplot = df.boxplot(column=['Col1', 'Col2'], by=['X', 'Y'])\n\nThe layout of boxplot can be adjusted giving a tuple to ``layout``:\n\n.. plot::\n    :context: close-figs\n\n    >>> boxplot = df.boxplot(column=['Col1', 'Col2'], by='X',\n    ...                      layout=(2, 1))\n\nAdditional formatting can be done to the boxplot, like suppressing the grid\n(``grid=False``), rotating the labels in the x-axis (i.e. ``rot=45``)\nor changing the fontsize (i.e. ``fontsize=15``):\n\n.. plot::\n    :context: close-figs\n\n    >>> boxplot = df.boxplot(grid=False, rot=45, fontsize=15)\n\nThe parameter ``return_type`` can be used to select the type of element\nreturned by `boxplot`.  When ``return_type='axes'`` is selected,\nthe matplotlib axes on which the boxplot is drawn are returned:\n\n    >>> boxplot = df.boxplot(column=['Col1', 'Col2'], return_type='axes')\n    >>> type(boxplot)\n    <class 'matplotlib.axes._subplots.AxesSubplot'>\n\nWhen grouping with ``by``, a Series mapping columns to ``return_type``\nis returned:\n\n    >>> boxplot = df.boxplot(column=['Col1', 'Col2'], by='X',\n    ...                      return_type='axes')\n    >>> type(boxplot)\n    <class 'pandas.core.series.Series'>\n\nIf ``return_type`` is `None`, a NumPy array of axes with the same shape\nas ``layout`` is returned:\n\n    >>> boxplot = df.boxplot(column=['Col1', 'Col2'], by='X',\n    ...                      return_type=None)\n    >>> type(boxplot)\n    <class 'numpy.ndarray'>\n"
+_backend_doc = "backend : str, default None\n    Backend to use instead of the backend specified in the option\n    ``plotting.backend``. For instance, 'matplotlib'. Alternatively, to\n    specify the ``plotting.backend`` for the whole session, set\n    ``pd.options.plotting.backend``.\n\n    .. versionadded:: 1.0.0\n"
+_bar_or_line_doc = "\n        Parameters\n        ----------\n        x : label or position, optional\n            Allows plotting of one column versus another. If not specified,\n            the index of the DataFrame is used.\n        y : label or position, optional\n            Allows plotting of one column versus another. If not specified,\n            all numerical columns are used.\n        color : str, array_like, or dict, optional\n            The color for each of the DataFrame's columns. Possible values are:\n\n            - A single color string referred to by name, RGB or RGBA code,\n                for instance 'red' or '#a98d19'.\n\n            - A sequence of color strings referred to by name, RGB or RGBA\n                code, which will be used for each column recursively. For\n                instance ['green','yellow'] each column's %(kind)s will be filled in\n                green or yellow, alternatively. If there is only a single column to\n                be plotted, then only the first color from the color list will be\n                used.\n\n            - A dict of the form {column name : color}, so that each column will be\n                colored accordingly. For example, if your columns are called `a` and\n                `b`, then passing {'a': 'green', 'b': 'red'} will color %(kind)ss for\n                column `a` in green and %(kind)ss for column `b` in red.\n\n            .. versionadded:: 1.1.0\n\n        **kwargs\n            Additional keyword arguments are documented in\n            :meth:`DataFrame.plot`.\n\n        Returns\n        -------\n        matplotlib.axes.Axes or np.ndarray of them\n            An ndarray is returned with one :class:`matplotlib.axes.Axes`\n            per column when ``subplots=True``.\n"
 
-
-_boxplot_doc = """
-Make a box plot from DataFrame columns.
-
-Make a box-and-whisker plot from DataFrame columns, optionally grouped
-by some other columns. A box plot is a method for graphically depicting
-groups of numerical data through their quartiles.
-The box extends from the Q1 to Q3 quartile values of the data,
-with a line at the median (Q2). The whiskers extend from the edges
-of box to show the range of the data. By default, they extend no more than
-`1.5 * IQR (IQR = Q3 - Q1)` from the edges of the box, ending at the farthest
-data point within that interval. Outliers are plotted as separate dots.
-
-For further details see
-Wikipedia's entry for `boxplot <https://en.wikipedia.org/wiki/Box_plot>`_.
-
-Parameters
-----------
-column : str or list of str, optional
-    Column name or list of names, or vector.
-    Can be any valid input to :meth:`pandas.DataFrame.groupby`.
-by : str or array-like, optional
-    Column in the DataFrame to :meth:`pandas.DataFrame.groupby`.
-    One box-plot will be done per value of columns in `by`.
-ax : object of class matplotlib.axes.Axes, optional
-    The matplotlib axes to be used by boxplot.
-fontsize : float or str
-    Tick label font size in points or as a string (e.g., `large`).
-rot : int or float, default 0
-    The rotation angle of labels (in degrees)
-    with respect to the screen coordinate system.
-grid : bool, default True
-    Setting this to True will show the grid.
-figsize : A tuple (width, height) in inches
-    The size of the figure to create in matplotlib.
-layout : tuple (rows, columns), optional
-    For example, (3, 5) will display the subplots
-    using 3 columns and 5 rows, starting from the top-left.
-return_type : {'axes', 'dict', 'both'} or None, default 'axes'
-    The kind of object to return. The default is ``axes``.
-
-    * 'axes' returns the matplotlib axes the boxplot is drawn on.
-    * 'dict' returns a dictionary whose values are the matplotlib
-      Lines of the boxplot.
-    * 'both' returns a namedtuple with the axes and dict.
-    * when grouping with ``by``, a Series mapping columns to
-      ``return_type`` is returned.
-
-      If ``return_type`` is `None`, a NumPy array
-      of axes with the same shape as ``layout`` is returned.
-%(backend)s\
-
-**kwargs
-    All other plotting keyword arguments to be passed to
-    :func:`matplotlib.pyplot.boxplot`.
-
-Returns
--------
-result
-    See Notes.
-
-See Also
---------
-Series.plot.hist: Make a histogram.
-matplotlib.pyplot.boxplot : Matplotlib equivalent plot.
-
-Notes
------
-The return type depends on the `return_type` parameter:
-
-* 'axes' : object of class matplotlib.axes.Axes
-* 'dict' : dict of matplotlib.lines.Line2D objects
-* 'both' : a namedtuple with structure (ax, lines)
-
-For data grouped with ``by``, return a Series of the above or a numpy
-array:
-
-* :class:`~pandas.Series`
-* :class:`~numpy.array` (for ``return_type = None``)
-
-Use ``return_type='dict'`` when you want to tweak the appearance
-of the lines after plotting. In this case a dict containing the Lines
-making up the boxes, caps, fliers, medians, and whiskers is returned.
-
-Examples
---------
-
-Boxplots can be created for every column in the dataframe
-by ``df.boxplot()`` or indicating the columns to be used:
-
-.. plot::
-    :context: close-figs
-
-    >>> np.random.seed(1234)
-    >>> df = pd.DataFrame(np.random.randn(10, 4),
-    ...                   columns=['Col1', 'Col2', 'Col3', 'Col4'])
-    >>> boxplot = df.boxplot(column=['Col1', 'Col2', 'Col3'])
-
-Boxplots of variables distributions grouped by the values of a third
-variable can be created using the option ``by``. For instance:
-
-.. plot::
-    :context: close-figs
-
-    >>> df = pd.DataFrame(np.random.randn(10, 2),
-    ...                   columns=['Col1', 'Col2'])
-    >>> df['X'] = pd.Series(['A', 'A', 'A', 'A', 'A',
-    ...                      'B', 'B', 'B', 'B', 'B'])
-    >>> boxplot = df.boxplot(by='X')
-
-A list of strings (i.e. ``['X', 'Y']``) can be passed to boxplot
-in order to group the data by combination of the variables in the x-axis:
-
-.. plot::
-    :context: close-figs
-
-    >>> df = pd.DataFrame(np.random.randn(10, 3),
-    ...                   columns=['Col1', 'Col2', 'Col3'])
-    >>> df['X'] = pd.Series(['A', 'A', 'A', 'A', 'A',
-    ...                      'B', 'B', 'B', 'B', 'B'])
-    >>> df['Y'] = pd.Series(['A', 'B', 'A', 'B', 'A',
-    ...                      'B', 'A', 'B', 'A', 'B'])
-    >>> boxplot = df.boxplot(column=['Col1', 'Col2'], by=['X', 'Y'])
-
-The layout of boxplot can be adjusted giving a tuple to ``layout``:
-
-.. plot::
-    :context: close-figs
-
-    >>> boxplot = df.boxplot(column=['Col1', 'Col2'], by='X',
-    ...                      layout=(2, 1))
-
-Additional formatting can be done to the boxplot, like suppressing the grid
-(``grid=False``), rotating the labels in the x-axis (i.e. ``rot=45``)
-or changing the fontsize (i.e. ``fontsize=15``):
-
-.. plot::
-    :context: close-figs
-
-    >>> boxplot = df.boxplot(grid=False, rot=45, fontsize=15)
-
-The parameter ``return_type`` can be used to select the type of element
-returned by `boxplot`.  When ``return_type='axes'`` is selected,
-the matplotlib axes on which the boxplot is drawn are returned:
-
-    >>> boxplot = df.boxplot(column=['Col1', 'Col2'], return_type='axes')
-    >>> type(boxplot)
-    <class 'matplotlib.axes._subplots.AxesSubplot'>
-
-When grouping with ``by``, a Series mapping columns to ``return_type``
-is returned:
-
-    >>> boxplot = df.boxplot(column=['Col1', 'Col2'], by='X',
-    ...                      return_type='axes')
-    >>> type(boxplot)
-    <class 'pandas.core.series.Series'>
-
-If ``return_type`` is `None`, a NumPy array of axes with the same shape
-as ``layout`` is returned:
-
-    >>> boxplot = df.boxplot(column=['Col1', 'Col2'], by='X',
-    ...                      return_type=None)
-    >>> type(boxplot)
-    <class 'numpy.ndarray'>
-"""
-
-_backend_doc = """\
-backend : str, default None
-    Backend to use instead of the backend specified in the option
-    ``plotting.backend``. For instance, 'matplotlib'. Alternatively, to
-    specify the ``plotting.backend`` for the whole session, set
-    ``pd.options.plotting.backend``.
-
-    .. versionadded:: 1.0.0
-"""
-
-
-_bar_or_line_doc = """
-        Parameters
-        ----------
-        x : label or position, optional
-            Allows plotting of one column versus another. If not specified,
-            the index of the DataFrame is used.
-        y : label or position, optional
-            Allows plotting of one column versus another. If not specified,
-            all numerical columns are used.
-        color : str, array_like, or dict, optional
-            The color for each of the DataFrame's columns. Possible values are:
-
-            - A single color string referred to by name, RGB or RGBA code,
-                for instance 'red' or '#a98d19'.
-
-            - A sequence of color strings referred to by name, RGB or RGBA
-                code, which will be used for each column recursively. For
-                instance ['green','yellow'] each column's %(kind)s will be filled in
-                green or yellow, alternatively. If there is only a single column to
-                be plotted, then only the first color from the color list will be
-                used.
-
-            - A dict of the form {column name : color}, so that each column will be
-                colored accordingly. For example, if your columns are called `a` and
-                `b`, then passing {'a': 'green', 'b': 'red'} will color %(kind)ss for
-                column `a` in green and %(kind)ss for column `b` in red.
-
-            .. versionadded:: 1.1.0
-
-        **kwargs
-            Additional keyword arguments are documented in
-            :meth:`DataFrame.plot`.
-
-        Returns
-        -------
-        matplotlib.axes.Axes or np.ndarray of them
-            An ndarray is returned with one :class:`matplotlib.axes.Axes`
-            per column when ``subplots=True``.
-"""
-
-
-@Substitution(backend="")
+@Substitution(backend='')
 @Appender(_boxplot_doc)
-def boxplot(
-    data,
-    column=None,
-    by=None,
-    ax=None,
-    fontsize=None,
-    rot=0,
-    grid=True,
-    figsize=None,
-    layout=None,
-    return_type=None,
-    **kwargs,
-):
-    plot_backend = _get_plot_backend("matplotlib")
-    return plot_backend.boxplot(
-        data,
-        column=column,
-        by=by,
-        ax=ax,
-        fontsize=fontsize,
-        rot=rot,
-        grid=grid,
-        figsize=figsize,
-        layout=layout,
-        return_type=return_type,
-        **kwargs,
-    )
-
+def boxplot(data, column=None, by=None, ax=None, fontsize=None, rot=0, grid=True, figsize=None, layout=None, return_type=None, **kwargs):
+    plot_backend = _get_plot_backend('matplotlib')
+    return plot_backend.boxplot(data, column=column, by=by, ax=ax, fontsize=fontsize, rot=rot, grid=grid, figsize=figsize, layout=layout, return_type=return_type, **kwargs)
 
 @Substitution(backend=_backend_doc)
 @Appender(_boxplot_doc)
-def boxplot_frame(
-    self,
-    column=None,
-    by=None,
-    ax=None,
-    fontsize=None,
-    rot=0,
-    grid=True,
-    figsize=None,
-    layout=None,
-    return_type=None,
-    backend=None,
-    **kwargs,
-):
+def boxplot_frame(self, column=None, by=None, ax=None, fontsize=None, rot=0, grid=True, figsize=None, layout=None, return_type=None, backend=None, **kwargs):
     plot_backend = _get_plot_backend(backend)
-    return plot_backend.boxplot_frame(
-        self,
-        column=column,
-        by=by,
-        ax=ax,
-        fontsize=fontsize,
-        rot=rot,
-        grid=grid,
-        figsize=figsize,
-        layout=layout,
-        return_type=return_type,
-        **kwargs,
-    )
+    return plot_backend.boxplot_frame(self, column=column, by=by, ax=ax, fontsize=fontsize, rot=rot, grid=grid, figsize=figsize, layout=layout, return_type=return_type, **kwargs)
 
-
-def boxplot_frame_groupby(
-    grouped,
-    subplots=True,
-    column=None,
-    fontsize=None,
-    rot=0,
-    grid=True,
-    ax=None,
-    figsize=None,
-    layout=None,
-    sharex=False,
-    sharey=True,
-    backend=None,
-    **kwargs,
-):
-    """
-    Make box plots from DataFrameGroupBy data.
-
-    Parameters
-    ----------
-    grouped : Grouped DataFrame
-    subplots : bool
-        * ``False`` - no subplots will be used
-        * ``True`` - create a subplot for each group.
-
-    column : column name or list of names, or vector
-        Can be any valid input to groupby.
-    fontsize : int or str
-    rot : label rotation angle
-    grid : Setting this to True will show the grid
-    ax : Matplotlib axis object, default None
-    figsize : A tuple (width, height) in inches
-    layout : tuple (optional)
-        The layout of the plot: (rows, columns).
-    sharex : bool, default False
-        Whether x-axes will be shared among subplots.
-    sharey : bool, default True
-        Whether y-axes will be shared among subplots.
-    backend : str, default None
-        Backend to use instead of the backend specified in the option
-        ``plotting.backend``. For instance, 'matplotlib'. Alternatively, to
-        specify the ``plotting.backend`` for the whole session, set
-        ``pd.options.plotting.backend``.
-
-        .. versionadded:: 1.0.0
-
-    **kwargs
-        All other plotting keyword arguments to be passed to
-        matplotlib's boxplot function.
-
-    Returns
-    -------
-    dict of key/value = group key/DataFrame.boxplot return value
-    or DataFrame.boxplot return value in case subplots=figures=False
-
-    Examples
-    --------
-    You can create boxplots for grouped data and show them as separate subplots:
-
-    .. plot::
-        :context: close-figs
-
-        >>> import itertools
-        >>> tuples = [t for t in itertools.product(range(1000), range(4))]
-        >>> index = pd.MultiIndex.from_tuples(tuples, names=['lvl0', 'lvl1'])
-        >>> data = np.random.randn(len(index),4)
-        >>> df = pd.DataFrame(data, columns=list('ABCD'), index=index)
-        >>> grouped = df.groupby(level='lvl1')
-        >>> grouped.boxplot(rot=45, fontsize=12, figsize=(8,10))
-
-    The ``subplots=False`` option shows the boxplots in a single figure.
-
-    .. plot::
-        :context: close-figs
-
-        >>> grouped.boxplot(subplots=False, rot=45, fontsize=12)
-    """
+def boxplot_frame_groupby(grouped, subplots=True, column=None, fontsize=None, rot=0, grid=True, ax=None, figsize=None, layout=None, sharex=False, sharey=True, backend=None, **kwargs):
+    "\n    Make box plots from DataFrameGroupBy data.\n\n    Parameters\n    ----------\n    grouped : Grouped DataFrame\n    subplots : bool\n        * ``False`` - no subplots will be used\n        * ``True`` - create a subplot for each group.\n\n    column : column name or list of names, or vector\n        Can be any valid input to groupby.\n    fontsize : int or str\n    rot : label rotation angle\n    grid : Setting this to True will show the grid\n    ax : Matplotlib axis object, default None\n    figsize : A tuple (width, height) in inches\n    layout : tuple (optional)\n        The layout of the plot: (rows, columns).\n    sharex : bool, default False\n        Whether x-axes will be shared among subplots.\n    sharey : bool, default True\n        Whether y-axes will be shared among subplots.\n    backend : str, default None\n        Backend to use instead of the backend specified in the option\n        ``plotting.backend``. For instance, 'matplotlib'. Alternatively, to\n        specify the ``plotting.backend`` for the whole session, set\n        ``pd.options.plotting.backend``.\n\n        .. versionadded:: 1.0.0\n\n    **kwargs\n        All other plotting keyword arguments to be passed to\n        matplotlib's boxplot function.\n\n    Returns\n    -------\n    dict of key/value = group key/DataFrame.boxplot return value\n    or DataFrame.boxplot return value in case subplots=figures=False\n\n    Examples\n    --------\n    You can create boxplots for grouped data and show them as separate subplots:\n\n    .. plot::\n        :context: close-figs\n\n        >>> import itertools\n        >>> tuples = [t for t in itertools.product(range(1000), range(4))]\n        >>> index = pd.MultiIndex.from_tuples(tuples, names=['lvl0', 'lvl1'])\n        >>> data = np.random.randn(len(index),4)\n        >>> df = pd.DataFrame(data, columns=list('ABCD'), index=index)\n        >>> grouped = df.groupby(level='lvl1')\n        >>> grouped.boxplot(rot=45, fontsize=12, figsize=(8,10))\n\n    The ``subplots=False`` option shows the boxplots in a single figure.\n\n    .. plot::\n        :context: close-figs\n\n        >>> grouped.boxplot(subplots=False, rot=45, fontsize=12)\n    "
     plot_backend = _get_plot_backend(backend)
-    return plot_backend.boxplot_frame_groupby(
-        grouped,
-        subplots=subplots,
-        column=column,
-        fontsize=fontsize,
-        rot=rot,
-        grid=grid,
-        ax=ax,
-        figsize=figsize,
-        layout=layout,
-        sharex=sharex,
-        sharey=sharey,
-        **kwargs,
-    )
-
+    return plot_backend.boxplot_frame_groupby(grouped, subplots=subplots, column=column, fontsize=fontsize, rot=rot, grid=grid, ax=ax, figsize=figsize, layout=layout, sharex=sharex, sharey=sharey, **kwargs)
 
 class PlotAccessor(PandasObject):
-    """
-    Make plots of Series or DataFrame.
-
-    Uses the backend specified by the
-    option ``plotting.backend``. By default, matplotlib is used.
-
-    Parameters
-    ----------
-    data : Series or DataFrame
-        The object for which the method is called.
-    x : label or position, default None
-        Only used if data is a DataFrame.
-    y : label, position or list of label, positions, default None
-        Allows plotting of one column versus another. Only used if data is a
-        DataFrame.
-    kind : str
-        The kind of plot to produce:
-
-        - 'line' : line plot (default)
-        - 'bar' : vertical bar plot
-        - 'barh' : horizontal bar plot
-        - 'hist' : histogram
-        - 'box' : boxplot
-        - 'kde' : Kernel Density Estimation plot
-        - 'density' : same as 'kde'
-        - 'area' : area plot
-        - 'pie' : pie plot
-        - 'scatter' : scatter plot
-        - 'hexbin' : hexbin plot.
-    ax : matplotlib axes object, default None
-        An axes of the current figure.
-    subplots : bool, default False
-        Make separate subplots for each column.
-    sharex : bool, default True if ax is None else False
-        In case ``subplots=True``, share x axis and set some x axis labels
-        to invisible; defaults to True if ax is None otherwise False if
-        an ax is passed in; Be aware, that passing in both an ax and
-        ``sharex=True`` will alter all x axis labels for all axis in a figure.
-    sharey : bool, default False
-        In case ``subplots=True``, share y axis and set some y axis labels to invisible.
-    layout : tuple, optional
-        (rows, columns) for the layout of subplots.
-    figsize : a tuple (width, height) in inches
-        Size of a figure object.
-    use_index : bool, default True
-        Use index as ticks for x axis.
-    title : str or list
-        Title to use for the plot. If a string is passed, print the string
-        at the top of the figure. If a list is passed and `subplots` is
-        True, print each item in the list above the corresponding subplot.
-    grid : bool, default None (matlab style default)
-        Axis grid lines.
-    legend : bool or {'reverse'}
-        Place legend on axis subplots.
-    style : list or dict
-        The matplotlib line style per column.
-    logx : bool or 'sym', default False
-        Use log scaling or symlog scaling on x axis.
-        .. versionchanged:: 0.25.0
-
-    logy : bool or 'sym' default False
-        Use log scaling or symlog scaling on y axis.
-        .. versionchanged:: 0.25.0
-
-    loglog : bool or 'sym', default False
-        Use log scaling or symlog scaling on both x and y axes.
-        .. versionchanged:: 0.25.0
-
-    xticks : sequence
-        Values to use for the xticks.
-    yticks : sequence
-        Values to use for the yticks.
-    xlim : 2-tuple/list
-        Set the x limits of the current axes.
-    ylim : 2-tuple/list
-        Set the y limits of the current axes.
-    xlabel : label, optional
-        Name to use for the xlabel on x-axis. Default uses index name as xlabel, or the
-        x-column name for planar plots.
-
-        .. versionadded:: 1.1.0
-
-        .. versionchanged:: 1.2.0
-
-           Now applicable to planar plots (`scatter`, `hexbin`).
-
-    ylabel : label, optional
-        Name to use for the ylabel on y-axis. Default will show no ylabel, or the
-        y-column name for planar plots.
-
-        .. versionadded:: 1.1.0
-
-        .. versionchanged:: 1.2.0
-
-           Now applicable to planar plots (`scatter`, `hexbin`).
-
-    rot : int, default None
-        Rotation for ticks (xticks for vertical, yticks for horizontal
-        plots).
-    fontsize : int, default None
-        Font size for xticks and yticks.
-    colormap : str or matplotlib colormap object, default None
-        Colormap to select colors from. If string, load colormap with that
-        name from matplotlib.
-    colorbar : bool, optional
-        If True, plot colorbar (only relevant for 'scatter' and 'hexbin'
-        plots).
-    position : float
-        Specify relative alignments for bar plot layout.
-        From 0 (left/bottom-end) to 1 (right/top-end). Default is 0.5
-        (center).
-    table : bool, Series or DataFrame, default False
-        If True, draw a table using the data in the DataFrame and the data
-        will be transposed to meet matplotlib's default layout.
-        If a Series or DataFrame is passed, use passed data to draw a
-        table.
-    yerr : DataFrame, Series, array-like, dict and str
-        See :ref:`Plotting with Error Bars <visualization.errorbars>` for
-        detail.
-    xerr : DataFrame, Series, array-like, dict and str
-        Equivalent to yerr.
-    stacked : bool, default False in line and bar plots, and True in area plot
-        If True, create stacked plot.
-    sort_columns : bool, default False
-        Sort column names to determine plot ordering.
-    secondary_y : bool or sequence, default False
-        Whether to plot on the secondary y-axis if a list/tuple, which
-        columns to plot on secondary y-axis.
-    mark_right : bool, default True
-        When using a secondary_y axis, automatically mark the column
-        labels with "(right)" in the legend.
-    include_bool : bool, default is False
-        If True, boolean values can be plotted.
-    backend : str, default None
-        Backend to use instead of the backend specified in the option
-        ``plotting.backend``. For instance, 'matplotlib'. Alternatively, to
-        specify the ``plotting.backend`` for the whole session, set
-        ``pd.options.plotting.backend``.
-
-        .. versionadded:: 1.0.0
-
-    **kwargs
-        Options to pass to matplotlib plotting method.
-
-    Returns
-    -------
-    :class:`matplotlib.axes.Axes` or numpy.ndarray of them
-        If the backend is not the default matplotlib one, the return value
-        will be the object returned by the backend.
-
-    Notes
-    -----
-    - See matplotlib documentation online for more on this subject
-    - If `kind` = 'bar' or 'barh', you can specify relative alignments
-      for bar plot layout by `position` keyword.
-      From 0 (left/bottom-end) to 1 (right/top-end). Default is 0.5
-      (center)
-    """
-
-    _common_kinds = ("line", "bar", "barh", "kde", "density", "area", "hist", "box")
-    _series_kinds = ("pie",)
-    _dataframe_kinds = ("scatter", "hexbin")
-    _kind_aliases = {"density": "kde"}
-    _all_kinds = _common_kinds + _series_kinds + _dataframe_kinds
+    '\n    Make plots of Series or DataFrame.\n\n    Uses the backend specified by the\n    option ``plotting.backend``. By default, matplotlib is used.\n\n    Parameters\n    ----------\n    data : Series or DataFrame\n        The object for which the method is called.\n    x : label or position, default None\n        Only used if data is a DataFrame.\n    y : label, position or list of label, positions, default None\n        Allows plotting of one column versus another. Only used if data is a\n        DataFrame.\n    kind : str\n        The kind of plot to produce:\n\n        - \'line\' : line plot (default)\n        - \'bar\' : vertical bar plot\n        - \'barh\' : horizontal bar plot\n        - \'hist\' : histogram\n        - \'box\' : boxplot\n        - \'kde\' : Kernel Density Estimation plot\n        - \'density\' : same as \'kde\'\n        - \'area\' : area plot\n        - \'pie\' : pie plot\n        - \'scatter\' : scatter plot\n        - \'hexbin\' : hexbin plot.\n    ax : matplotlib axes object, default None\n        An axes of the current figure.\n    subplots : bool, default False\n        Make separate subplots for each column.\n    sharex : bool, default True if ax is None else False\n        In case ``subplots=True``, share x axis and set some x axis labels\n        to invisible; defaults to True if ax is None otherwise False if\n        an ax is passed in; Be aware, that passing in both an ax and\n        ``sharex=True`` will alter all x axis labels for all axis in a figure.\n    sharey : bool, default False\n        In case ``subplots=True``, share y axis and set some y axis labels to invisible.\n    layout : tuple, optional\n        (rows, columns) for the layout of subplots.\n    figsize : a tuple (width, height) in inches\n        Size of a figure object.\n    use_index : bool, default True\n        Use index as ticks for x axis.\n    title : str or list\n        Title to use for the plot. If a string is passed, print the string\n        at the top of the figure. If a list is passed and `subplots` is\n        True, print each item in the list above the corresponding subplot.\n    grid : bool, default None (matlab style default)\n        Axis grid lines.\n    legend : bool or {\'reverse\'}\n        Place legend on axis subplots.\n    style : list or dict\n        The matplotlib line style per column.\n    logx : bool or \'sym\', default False\n        Use log scaling or symlog scaling on x axis.\n        .. versionchanged:: 0.25.0\n\n    logy : bool or \'sym\' default False\n        Use log scaling or symlog scaling on y axis.\n        .. versionchanged:: 0.25.0\n\n    loglog : bool or \'sym\', default False\n        Use log scaling or symlog scaling on both x and y axes.\n        .. versionchanged:: 0.25.0\n\n    xticks : sequence\n        Values to use for the xticks.\n    yticks : sequence\n        Values to use for the yticks.\n    xlim : 2-tuple/list\n        Set the x limits of the current axes.\n    ylim : 2-tuple/list\n        Set the y limits of the current axes.\n    xlabel : label, optional\n        Name to use for the xlabel on x-axis. Default uses index name as xlabel, or the\n        x-column name for planar plots.\n\n        .. versionadded:: 1.1.0\n\n        .. versionchanged:: 1.2.0\n\n           Now applicable to planar plots (`scatter`, `hexbin`).\n\n    ylabel : label, optional\n        Name to use for the ylabel on y-axis. Default will show no ylabel, or the\n        y-column name for planar plots.\n\n        .. versionadded:: 1.1.0\n\n        .. versionchanged:: 1.2.0\n\n           Now applicable to planar plots (`scatter`, `hexbin`).\n\n    rot : int, default None\n        Rotation for ticks (xticks for vertical, yticks for horizontal\n        plots).\n    fontsize : int, default None\n        Font size for xticks and yticks.\n    colormap : str or matplotlib colormap object, default None\n        Colormap to select colors from. If string, load colormap with that\n        name from matplotlib.\n    colorbar : bool, optional\n        If True, plot colorbar (only relevant for \'scatter\' and \'hexbin\'\n        plots).\n    position : float\n        Specify relative alignments for bar plot layout.\n        From 0 (left/bottom-end) to 1 (right/top-end). Default is 0.5\n        (center).\n    table : bool, Series or DataFrame, default False\n        If True, draw a table using the data in the DataFrame and the data\n        will be transposed to meet matplotlib\'s default layout.\n        If a Series or DataFrame is passed, use passed data to draw a\n        table.\n    yerr : DataFrame, Series, array-like, dict and str\n        See :ref:`Plotting with Error Bars <visualization.errorbars>` for\n        detail.\n    xerr : DataFrame, Series, array-like, dict and str\n        Equivalent to yerr.\n    stacked : bool, default False in line and bar plots, and True in area plot\n        If True, create stacked plot.\n    sort_columns : bool, default False\n        Sort column names to determine plot ordering.\n    secondary_y : bool or sequence, default False\n        Whether to plot on the secondary y-axis if a list/tuple, which\n        columns to plot on secondary y-axis.\n    mark_right : bool, default True\n        When using a secondary_y axis, automatically mark the column\n        labels with "(right)" in the legend.\n    include_bool : bool, default is False\n        If True, boolean values can be plotted.\n    backend : str, default None\n        Backend to use instead of the backend specified in the option\n        ``plotting.backend``. For instance, \'matplotlib\'. Alternatively, to\n        specify the ``plotting.backend`` for the whole session, set\n        ``pd.options.plotting.backend``.\n\n        .. versionadded:: 1.0.0\n\n    **kwargs\n        Options to pass to matplotlib plotting method.\n\n    Returns\n    -------\n    :class:`matplotlib.axes.Axes` or numpy.ndarray of them\n        If the backend is not the default matplotlib one, the return value\n        will be the object returned by the backend.\n\n    Notes\n    -----\n    - See matplotlib documentation online for more on this subject\n    - If `kind` = \'bar\' or \'barh\', you can specify relative alignments\n      for bar plot layout by `position` keyword.\n      From 0 (left/bottom-end) to 1 (right/top-end). Default is 0.5\n      (center)\n    '
+    _common_kinds = ('line', 'bar', 'barh', 'kde', 'density', 'area', 'hist', 'box')
+    _series_kinds = ('pie',)
+    _dataframe_kinds = ('scatter', 'hexbin')
+    _kind_aliases = {'density': 'kde'}
+    _all_kinds = ((_common_kinds + _series_kinds) + _dataframe_kinds)
 
     def __init__(self, data):
         self._parent = data
 
     @staticmethod
     def _get_call_args(backend_name, data, args, kwargs):
-        """
-        This function makes calls to this accessor `__call__` method compatible
-        with the previous `SeriesPlotMethods.__call__` and
-        `DataFramePlotMethods.__call__`. Those had slightly different
-        signatures, since `DataFramePlotMethods` accepted `x` and `y`
-        parameters.
-        """
+        '\n        This function makes calls to this accessor `__call__` method compatible\n        with the previous `SeriesPlotMethods.__call__` and\n        `DataFramePlotMethods.__call__`. Those had slightly different\n        signatures, since `DataFramePlotMethods` accepted `x` and `y`\n        parameters.\n        '
         if isinstance(data, ABCSeries):
-            arg_def = [
-                ("kind", "line"),
-                ("ax", None),
-                ("figsize", None),
-                ("use_index", True),
-                ("title", None),
-                ("grid", None),
-                ("legend", False),
-                ("style", None),
-                ("logx", False),
-                ("logy", False),
-                ("loglog", False),
-                ("xticks", None),
-                ("yticks", None),
-                ("xlim", None),
-                ("ylim", None),
-                ("rot", None),
-                ("fontsize", None),
-                ("colormap", None),
-                ("table", False),
-                ("yerr", None),
-                ("xerr", None),
-                ("label", None),
-                ("secondary_y", False),
-                ("xlabel", None),
-                ("ylabel", None),
-            ]
+            arg_def = [('kind', 'line'), ('ax', None), ('figsize', None), ('use_index', True), ('title', None), ('grid', None), ('legend', False), ('style', None), ('logx', False), ('logy', False), ('loglog', False), ('xticks', None), ('yticks', None), ('xlim', None), ('ylim', None), ('rot', None), ('fontsize', None), ('colormap', None), ('table', False), ('yerr', None), ('xerr', None), ('label', None), ('secondary_y', False), ('xlabel', None), ('ylabel', None)]
         elif isinstance(data, ABCDataFrame):
-            arg_def = [
-                ("x", None),
-                ("y", None),
-                ("kind", "line"),
-                ("ax", None),
-                ("subplots", False),
-                ("sharex", None),
-                ("sharey", False),
-                ("layout", None),
-                ("figsize", None),
-                ("use_index", True),
-                ("title", None),
-                ("grid", None),
-                ("legend", True),
-                ("style", None),
-                ("logx", False),
-                ("logy", False),
-                ("loglog", False),
-                ("xticks", None),
-                ("yticks", None),
-                ("xlim", None),
-                ("ylim", None),
-                ("rot", None),
-                ("fontsize", None),
-                ("colormap", None),
-                ("table", False),
-                ("yerr", None),
-                ("xerr", None),
-                ("secondary_y", False),
-                ("sort_columns", False),
-                ("xlabel", None),
-                ("ylabel", None),
-            ]
+            arg_def = [('x', None), ('y', None), ('kind', 'line'), ('ax', None), ('subplots', False), ('sharex', None), ('sharey', False), ('layout', None), ('figsize', None), ('use_index', True), ('title', None), ('grid', None), ('legend', True), ('style', None), ('logx', False), ('logy', False), ('loglog', False), ('xticks', None), ('yticks', None), ('xlim', None), ('ylim', None), ('rot', None), ('fontsize', None), ('colormap', None), ('table', False), ('yerr', None), ('xerr', None), ('secondary_y', False), ('sort_columns', False), ('xlabel', None), ('ylabel', None)]
         else:
-            raise TypeError(
-                f"Called plot accessor for type {type(data).__name__}, "
-                "expected Series or DataFrame"
-            )
-
-        if args and isinstance(data, ABCSeries):
-            positional_args = str(args)[1:-1]
-            keyword_args = ", ".join(
-                f"{name}={repr(value)}" for (name, default), value in zip(arg_def, args)
-            )
-            msg = (
-                "`Series.plot()` should not be called with positional "
-                "arguments, only keyword arguments. The order of "
-                "positional arguments will change in the future. "
-                f"Use `Series.plot({keyword_args})` instead of "
-                f"`Series.plot({positional_args})`."
-            )
+            raise TypeError(f'Called plot accessor for type {type(data).__name__}, expected Series or DataFrame')
+        if (args and isinstance(data, ABCSeries)):
+            positional_args = str(args)[1:(- 1)]
+            keyword_args = ', '.join((f'{name}={repr(value)}' for ((name, default), value) in zip(arg_def, args)))
+            msg = f'`Series.plot()` should not be called with positional arguments, only keyword arguments. The order of positional arguments will change in the future. Use `Series.plot({keyword_args})` instead of `Series.plot({positional_args})`.'
             raise TypeError(msg)
-
-        pos_args = {name: value for value, (name, _) in zip(args, arg_def)}
-        if backend_name == "pandas.plotting._matplotlib":
+        pos_args = {name: value for (value, (name, _)) in zip(args, arg_def)}
+        if (backend_name == 'pandas.plotting._matplotlib'):
             kwargs = dict(arg_def, **pos_args, **kwargs)
         else:
             kwargs = dict(pos_args, **kwargs)
-
-        x = kwargs.pop("x", None)
-        y = kwargs.pop("y", None)
-        kind = kwargs.pop("kind", "line")
-        return x, y, kind, kwargs
+        x = kwargs.pop('x', None)
+        y = kwargs.pop('y', None)
+        kind = kwargs.pop('kind', 'line')
+        return (x, y, kind, kwargs)
 
     def __call__(self, *args, **kwargs):
-        plot_backend = _get_plot_backend(kwargs.pop("backend", None))
-
-        x, y, kind, kwargs = self._get_call_args(
-            plot_backend.__name__, self._parent, args, kwargs
-        )
-
+        plot_backend = _get_plot_backend(kwargs.pop('backend', None))
+        (x, y, kind, kwargs) = self._get_call_args(plot_backend.__name__, self._parent, args, kwargs)
         kind = self._kind_aliases.get(kind, kind)
-
-        # when using another backend, get out of the way
-        if plot_backend.__name__ != "pandas.plotting._matplotlib":
+        if (plot_backend.__name__ != 'pandas.plotting._matplotlib'):
             return plot_backend.plot(self._parent, x=x, y=y, kind=kind, **kwargs)
-
-        if kind not in self._all_kinds:
-            raise ValueError(f"{kind} is not a valid plot kind")
-
-        # The original data structured can be transformed before passed to the
-        # backend. For example, for DataFrame is common to set the index as the
-        # `x` parameter, and return a Series with the parameter `y` as values.
+        if (kind not in self._all_kinds):
+            raise ValueError(f'{kind} is not a valid plot kind')
         data = self._parent.copy()
-
         if isinstance(data, ABCSeries):
-            kwargs["reuse_plot"] = True
-
-        if kind in self._dataframe_kinds:
+            kwargs['reuse_plot'] = True
+        if (kind in self._dataframe_kinds):
             if isinstance(data, ABCDataFrame):
                 return plot_backend.plot(data, x=x, y=y, kind=kind, **kwargs)
             else:
-                raise ValueError(f"plot kind {kind} can only be used for data frames")
-        elif kind in self._series_kinds:
+                raise ValueError(f'plot kind {kind} can only be used for data frames')
+        elif (kind in self._series_kinds):
             if isinstance(data, ABCDataFrame):
-                if y is None and kwargs.get("subplots") is False:
-                    raise ValueError(
-                        f"{kind} requires either y column or 'subplots=True'"
-                    )
-                elif y is not None:
-                    if is_integer(y) and not data.columns.holds_integer():
+                if ((y is None) and (kwargs.get('subplots') is False)):
+                    raise ValueError(f"{kind} requires either y column or 'subplots=True'")
+                elif (y is not None):
+                    if (is_integer(y) and (not data.columns.holds_integer())):
                         y = data.columns[y]
-                    # converted to series actually. copy to not modify
                     data = data[y].copy()
                     data.index.name = y
         elif isinstance(data, ABCDataFrame):
             data_cols = data.columns
-            if x is not None:
-                if is_integer(x) and not data.columns.holds_integer():
+            if (x is not None):
+                if (is_integer(x) and (not data.columns.holds_integer())):
                     x = data_cols[x]
-                elif not isinstance(data[x], ABCSeries):
-                    raise ValueError("x must be a label or position")
+                elif (not isinstance(data[x], ABCSeries)):
+                    raise ValueError('x must be a label or position')
                 data = data.set_index(x)
-            if y is not None:
-                # check if we have y as int or list of ints
-                int_ylist = is_list_like(y) and all(is_integer(c) for c in y)
-                int_y_arg = is_integer(y) or int_ylist
-                if int_y_arg and not data.columns.holds_integer():
+            if (y is not None):
+                int_ylist = (is_list_like(y) and all((is_integer(c) for c in y)))
+                int_y_arg = (is_integer(y) or int_ylist)
+                if (int_y_arg and (not data.columns.holds_integer())):
                     y = data_cols[y]
-
-                label_kw = kwargs["label"] if "label" in kwargs else False
-                for kw in ["xerr", "yerr"]:
-                    if kw in kwargs and (
-                        isinstance(kwargs[kw], str) or is_integer(kwargs[kw])
-                    ):
+                label_kw = (kwargs['label'] if ('label' in kwargs) else False)
+                for kw in ['xerr', 'yerr']:
+                    if ((kw in kwargs) and (isinstance(kwargs[kw], str) or is_integer(kwargs[kw]))):
                         try:
                             kwargs[kw] = data[kwargs[kw]]
                         except (IndexError, KeyError, TypeError):
                             pass
-
-                # don't overwrite
                 data = data[y].copy()
-
                 if isinstance(data, ABCSeries):
-                    label_name = label_kw or y
+                    label_name = (label_kw or y)
                     data.name = label_name
                 else:
-                    match = is_list_like(label_kw) and len(label_kw) == len(y)
-                    if label_kw and not match:
-                        raise ValueError(
-                            "label should be list-like and same length as y"
-                        )
-                    label_name = label_kw or data.columns
+                    match = (is_list_like(label_kw) and (len(label_kw) == len(y)))
+                    if (label_kw and (not match)):
+                        raise ValueError('label should be list-like and same length as y')
+                    label_name = (label_kw or data.columns)
                     data.columns = label_name
-
         return plot_backend.plot(data, kind=kind, **kwargs)
-
     __call__.__doc__ = __doc__
 
-    @Appender(
-        """
-        See Also
-        --------
-        matplotlib.pyplot.plot : Plot y versus x as lines and/or markers.
-
-        Examples
-        --------
-
-        .. plot::
-            :context: close-figs
-
-            >>> s = pd.Series([1, 3, 2])
-            >>> s.plot.line()
-
-        .. plot::
-            :context: close-figs
-
-            The following example shows the populations for some animals
-            over the years.
-
-            >>> df = pd.DataFrame({
-            ...    'pig': [20, 18, 489, 675, 1776],
-            ...    'horse': [4, 25, 281, 600, 1900]
-            ...    }, index=[1990, 1997, 2003, 2009, 2014])
-            >>> lines = df.plot.line()
-
-        .. plot::
-           :context: close-figs
-
-           An example with subplots, so an array of axes is returned.
-
-           >>> axes = df.plot.line(subplots=True)
-           >>> type(axes)
-           <class 'numpy.ndarray'>
-
-        .. plot::
-           :context: close-figs
-
-           Let's repeat the same example, but specifying colors for
-           each column (in this case, for each animal).
-
-           >>> axes = df.plot.line(
-           ...     subplots=True, color={"pig": "pink", "horse": "#742802"}
-           ... )
-
-        .. plot::
-            :context: close-figs
-
-            The following example shows the relationship between both
-            populations.
-
-            >>> lines = df.plot.line(x='pig', y='horse')
-        """
-    )
-    @Substitution(kind="line")
+    @Appender('\n        See Also\n        --------\n        matplotlib.pyplot.plot : Plot y versus x as lines and/or markers.\n\n        Examples\n        --------\n\n        .. plot::\n            :context: close-figs\n\n            >>> s = pd.Series([1, 3, 2])\n            >>> s.plot.line()\n\n        .. plot::\n            :context: close-figs\n\n            The following example shows the populations for some animals\n            over the years.\n\n            >>> df = pd.DataFrame({\n            ...    \'pig\': [20, 18, 489, 675, 1776],\n            ...    \'horse\': [4, 25, 281, 600, 1900]\n            ...    }, index=[1990, 1997, 2003, 2009, 2014])\n            >>> lines = df.plot.line()\n\n        .. plot::\n           :context: close-figs\n\n           An example with subplots, so an array of axes is returned.\n\n           >>> axes = df.plot.line(subplots=True)\n           >>> type(axes)\n           <class \'numpy.ndarray\'>\n\n        .. plot::\n           :context: close-figs\n\n           Let\'s repeat the same example, but specifying colors for\n           each column (in this case, for each animal).\n\n           >>> axes = df.plot.line(\n           ...     subplots=True, color={"pig": "pink", "horse": "#742802"}\n           ... )\n\n        .. plot::\n            :context: close-figs\n\n            The following example shows the relationship between both\n            populations.\n\n            >>> lines = df.plot.line(x=\'pig\', y=\'horse\')\n        ')
+    @Substitution(kind='line')
     @Appender(_bar_or_line_doc)
     def line(self, x=None, y=None, **kwargs):
-        """
-        Plot Series or DataFrame as lines.
+        "\n        Plot Series or DataFrame as lines.\n\n        This function is useful to plot lines using DataFrame's values\n        as coordinates.\n        "
+        return self(kind='line', x=x, y=y, **kwargs)
 
-        This function is useful to plot lines using DataFrame's values
-        as coordinates.
-        """
-        return self(kind="line", x=x, y=y, **kwargs)
-
-    @Appender(
-        """
-        See Also
-        --------
-        DataFrame.plot.barh : Horizontal bar plot.
-        DataFrame.plot : Make plots of a DataFrame.
-        matplotlib.pyplot.bar : Make a bar plot with matplotlib.
-
-        Examples
-        --------
-        Basic plot.
-
-        .. plot::
-            :context: close-figs
-
-            >>> df = pd.DataFrame({'lab':['A', 'B', 'C'], 'val':[10, 30, 20]})
-            >>> ax = df.plot.bar(x='lab', y='val', rot=0)
-
-        Plot a whole dataframe to a bar plot. Each column is assigned a
-        distinct color, and each row is nested in a group along the
-        horizontal axis.
-
-        .. plot::
-            :context: close-figs
-
-            >>> speed = [0.1, 17.5, 40, 48, 52, 69, 88]
-            >>> lifespan = [2, 8, 70, 1.5, 25, 12, 28]
-            >>> index = ['snail', 'pig', 'elephant',
-            ...          'rabbit', 'giraffe', 'coyote', 'horse']
-            >>> df = pd.DataFrame({'speed': speed,
-            ...                    'lifespan': lifespan}, index=index)
-            >>> ax = df.plot.bar(rot=0)
-
-        Plot stacked bar charts for the DataFrame
-
-        .. plot::
-            :context: close-figs
-
-            >>> ax = df.plot.bar(stacked=True)
-
-        Instead of nesting, the figure can be split by column with
-        ``subplots=True``. In this case, a :class:`numpy.ndarray` of
-        :class:`matplotlib.axes.Axes` are returned.
-
-        .. plot::
-            :context: close-figs
-
-            >>> axes = df.plot.bar(rot=0, subplots=True)
-            >>> axes[1].legend(loc=2)  # doctest: +SKIP
-
-        If you don't like the default colours, you can specify how you'd
-        like each column to be colored.
-
-        .. plot::
-            :context: close-figs
-
-            >>> axes = df.plot.bar(
-            ...     rot=0, subplots=True, color={"speed": "red", "lifespan": "green"}
-            ... )
-            >>> axes[1].legend(loc=2)  # doctest: +SKIP
-
-        Plot a single column.
-
-        .. plot::
-            :context: close-figs
-
-            >>> ax = df.plot.bar(y='speed', rot=0)
-
-        Plot only selected categories for the DataFrame.
-
-        .. plot::
-            :context: close-figs
-
-            >>> ax = df.plot.bar(x='lifespan', rot=0)
-    """
-    )
-    @Substitution(kind="bar")
+    @Appender('\n        See Also\n        --------\n        DataFrame.plot.barh : Horizontal bar plot.\n        DataFrame.plot : Make plots of a DataFrame.\n        matplotlib.pyplot.bar : Make a bar plot with matplotlib.\n\n        Examples\n        --------\n        Basic plot.\n\n        .. plot::\n            :context: close-figs\n\n            >>> df = pd.DataFrame({\'lab\':[\'A\', \'B\', \'C\'], \'val\':[10, 30, 20]})\n            >>> ax = df.plot.bar(x=\'lab\', y=\'val\', rot=0)\n\n        Plot a whole dataframe to a bar plot. Each column is assigned a\n        distinct color, and each row is nested in a group along the\n        horizontal axis.\n\n        .. plot::\n            :context: close-figs\n\n            >>> speed = [0.1, 17.5, 40, 48, 52, 69, 88]\n            >>> lifespan = [2, 8, 70, 1.5, 25, 12, 28]\n            >>> index = [\'snail\', \'pig\', \'elephant\',\n            ...          \'rabbit\', \'giraffe\', \'coyote\', \'horse\']\n            >>> df = pd.DataFrame({\'speed\': speed,\n            ...                    \'lifespan\': lifespan}, index=index)\n            >>> ax = df.plot.bar(rot=0)\n\n        Plot stacked bar charts for the DataFrame\n\n        .. plot::\n            :context: close-figs\n\n            >>> ax = df.plot.bar(stacked=True)\n\n        Instead of nesting, the figure can be split by column with\n        ``subplots=True``. In this case, a :class:`numpy.ndarray` of\n        :class:`matplotlib.axes.Axes` are returned.\n\n        .. plot::\n            :context: close-figs\n\n            >>> axes = df.plot.bar(rot=0, subplots=True)\n            >>> axes[1].legend(loc=2)  # doctest: +SKIP\n\n        If you don\'t like the default colours, you can specify how you\'d\n        like each column to be colored.\n\n        .. plot::\n            :context: close-figs\n\n            >>> axes = df.plot.bar(\n            ...     rot=0, subplots=True, color={"speed": "red", "lifespan": "green"}\n            ... )\n            >>> axes[1].legend(loc=2)  # doctest: +SKIP\n\n        Plot a single column.\n\n        .. plot::\n            :context: close-figs\n\n            >>> ax = df.plot.bar(y=\'speed\', rot=0)\n\n        Plot only selected categories for the DataFrame.\n\n        .. plot::\n            :context: close-figs\n\n            >>> ax = df.plot.bar(x=\'lifespan\', rot=0)\n    ')
+    @Substitution(kind='bar')
     @Appender(_bar_or_line_doc)
     def bar(self, x=None, y=None, **kwargs):
-        """
-        Vertical bar plot.
+        '\n        Vertical bar plot.\n\n        A bar plot is a plot that presents categorical data with\n        rectangular bars with lengths proportional to the values that they\n        represent. A bar plot shows comparisons among discrete categories. One\n        axis of the plot shows the specific categories being compared, and the\n        other axis represents a measured value.\n        '
+        return self(kind='bar', x=x, y=y, **kwargs)
 
-        A bar plot is a plot that presents categorical data with
-        rectangular bars with lengths proportional to the values that they
-        represent. A bar plot shows comparisons among discrete categories. One
-        axis of the plot shows the specific categories being compared, and the
-        other axis represents a measured value.
-        """
-        return self(kind="bar", x=x, y=y, **kwargs)
-
-    @Appender(
-        """
-        See Also
-        --------
-        DataFrame.plot.bar: Vertical bar plot.
-        DataFrame.plot : Make plots of DataFrame using matplotlib.
-        matplotlib.axes.Axes.bar : Plot a vertical bar plot using matplotlib.
-
-        Examples
-        --------
-        Basic example
-
-        .. plot::
-            :context: close-figs
-
-            >>> df = pd.DataFrame({'lab': ['A', 'B', 'C'], 'val': [10, 30, 20]})
-            >>> ax = df.plot.barh(x='lab', y='val')
-
-        Plot a whole DataFrame to a horizontal bar plot
-
-        .. plot::
-            :context: close-figs
-
-            >>> speed = [0.1, 17.5, 40, 48, 52, 69, 88]
-            >>> lifespan = [2, 8, 70, 1.5, 25, 12, 28]
-            >>> index = ['snail', 'pig', 'elephant',
-            ...          'rabbit', 'giraffe', 'coyote', 'horse']
-            >>> df = pd.DataFrame({'speed': speed,
-            ...                    'lifespan': lifespan}, index=index)
-            >>> ax = df.plot.barh()
-
-        Plot stacked barh charts for the DataFrame
-
-        .. plot::
-            :context: close-figs
-
-            >>> ax = df.plot.barh(stacked=True)
-
-        We can specify colors for each column
-
-        .. plot::
-            :context: close-figs
-
-            >>> ax = df.plot.barh(color={"speed": "red", "lifespan": "green"})
-
-        Plot a column of the DataFrame to a horizontal bar plot
-
-        .. plot::
-            :context: close-figs
-
-            >>> speed = [0.1, 17.5, 40, 48, 52, 69, 88]
-            >>> lifespan = [2, 8, 70, 1.5, 25, 12, 28]
-            >>> index = ['snail', 'pig', 'elephant',
-            ...          'rabbit', 'giraffe', 'coyote', 'horse']
-            >>> df = pd.DataFrame({'speed': speed,
-            ...                    'lifespan': lifespan}, index=index)
-            >>> ax = df.plot.barh(y='speed')
-
-        Plot DataFrame versus the desired column
-
-        .. plot::
-            :context: close-figs
-
-            >>> speed = [0.1, 17.5, 40, 48, 52, 69, 88]
-            >>> lifespan = [2, 8, 70, 1.5, 25, 12, 28]
-            >>> index = ['snail', 'pig', 'elephant',
-            ...          'rabbit', 'giraffe', 'coyote', 'horse']
-            >>> df = pd.DataFrame({'speed': speed,
-            ...                    'lifespan': lifespan}, index=index)
-            >>> ax = df.plot.barh(x='lifespan')
-    """
-    )
-    @Substitution(kind="bar")
+    @Appender('\n        See Also\n        --------\n        DataFrame.plot.bar: Vertical bar plot.\n        DataFrame.plot : Make plots of DataFrame using matplotlib.\n        matplotlib.axes.Axes.bar : Plot a vertical bar plot using matplotlib.\n\n        Examples\n        --------\n        Basic example\n\n        .. plot::\n            :context: close-figs\n\n            >>> df = pd.DataFrame({\'lab\': [\'A\', \'B\', \'C\'], \'val\': [10, 30, 20]})\n            >>> ax = df.plot.barh(x=\'lab\', y=\'val\')\n\n        Plot a whole DataFrame to a horizontal bar plot\n\n        .. plot::\n            :context: close-figs\n\n            >>> speed = [0.1, 17.5, 40, 48, 52, 69, 88]\n            >>> lifespan = [2, 8, 70, 1.5, 25, 12, 28]\n            >>> index = [\'snail\', \'pig\', \'elephant\',\n            ...          \'rabbit\', \'giraffe\', \'coyote\', \'horse\']\n            >>> df = pd.DataFrame({\'speed\': speed,\n            ...                    \'lifespan\': lifespan}, index=index)\n            >>> ax = df.plot.barh()\n\n        Plot stacked barh charts for the DataFrame\n\n        .. plot::\n            :context: close-figs\n\n            >>> ax = df.plot.barh(stacked=True)\n\n        We can specify colors for each column\n\n        .. plot::\n            :context: close-figs\n\n            >>> ax = df.plot.barh(color={"speed": "red", "lifespan": "green"})\n\n        Plot a column of the DataFrame to a horizontal bar plot\n\n        .. plot::\n            :context: close-figs\n\n            >>> speed = [0.1, 17.5, 40, 48, 52, 69, 88]\n            >>> lifespan = [2, 8, 70, 1.5, 25, 12, 28]\n            >>> index = [\'snail\', \'pig\', \'elephant\',\n            ...          \'rabbit\', \'giraffe\', \'coyote\', \'horse\']\n            >>> df = pd.DataFrame({\'speed\': speed,\n            ...                    \'lifespan\': lifespan}, index=index)\n            >>> ax = df.plot.barh(y=\'speed\')\n\n        Plot DataFrame versus the desired column\n\n        .. plot::\n            :context: close-figs\n\n            >>> speed = [0.1, 17.5, 40, 48, 52, 69, 88]\n            >>> lifespan = [2, 8, 70, 1.5, 25, 12, 28]\n            >>> index = [\'snail\', \'pig\', \'elephant\',\n            ...          \'rabbit\', \'giraffe\', \'coyote\', \'horse\']\n            >>> df = pd.DataFrame({\'speed\': speed,\n            ...                    \'lifespan\': lifespan}, index=index)\n            >>> ax = df.plot.barh(x=\'lifespan\')\n    ')
+    @Substitution(kind='bar')
     @Appender(_bar_or_line_doc)
     def barh(self, x=None, y=None, **kwargs):
-        """
-        Make a horizontal bar plot.
-
-        A horizontal bar plot is a plot that presents quantitative data with
-        rectangular bars with lengths proportional to the values that they
-        represent. A bar plot shows comparisons among discrete categories. One
-        axis of the plot shows the specific categories being compared, and the
-        other axis represents a measured value.
-        """
-        return self(kind="barh", x=x, y=y, **kwargs)
+        '\n        Make a horizontal bar plot.\n\n        A horizontal bar plot is a plot that presents quantitative data with\n        rectangular bars with lengths proportional to the values that they\n        represent. A bar plot shows comparisons among discrete categories. One\n        axis of the plot shows the specific categories being compared, and the\n        other axis represents a measured value.\n        '
+        return self(kind='barh', x=x, y=y, **kwargs)
 
     def box(self, by=None, **kwargs):
-        r"""
-        Make a box plot of the DataFrame columns.
-
-        A box plot is a method for graphically depicting groups of numerical
-        data through their quartiles.
-        The box extends from the Q1 to Q3 quartile values of the data,
-        with a line at the median (Q2). The whiskers extend from the edges
-        of box to show the range of the data. The position of the whiskers
-        is set by default to 1.5*IQR (IQR = Q3 - Q1) from the edges of the
-        box. Outlier points are those past the end of the whiskers.
-
-        For further details see Wikipedia's
-        entry for `boxplot <https://en.wikipedia.org/wiki/Box_plot>`__.
-
-        A consideration when using this chart is that the box and the whiskers
-        can overlap, which is very common when plotting small sets of data.
-
-        Parameters
-        ----------
-        by : str or sequence
-            Column in the DataFrame to group by.
-        **kwargs
-            Additional keywords are documented in
-            :meth:`DataFrame.plot`.
-
-        Returns
-        -------
-        :class:`matplotlib.axes.Axes` or numpy.ndarray of them
-
-        See Also
-        --------
-        DataFrame.boxplot: Another method to draw a box plot.
-        Series.plot.box: Draw a box plot from a Series object.
-        matplotlib.pyplot.boxplot: Draw a box plot in matplotlib.
-
-        Examples
-        --------
-        Draw a box plot from a DataFrame with four columns of randomly
-        generated data.
-
-        .. plot::
-            :context: close-figs
-
-            >>> data = np.random.randn(25, 4)
-            >>> df = pd.DataFrame(data, columns=list('ABCD'))
-            >>> ax = df.plot.box()
-        """
-        return self(kind="box", by=by, **kwargs)
+        "\n        Make a box plot of the DataFrame columns.\n\n        A box plot is a method for graphically depicting groups of numerical\n        data through their quartiles.\n        The box extends from the Q1 to Q3 quartile values of the data,\n        with a line at the median (Q2). The whiskers extend from the edges\n        of box to show the range of the data. The position of the whiskers\n        is set by default to 1.5*IQR (IQR = Q3 - Q1) from the edges of the\n        box. Outlier points are those past the end of the whiskers.\n\n        For further details see Wikipedia's\n        entry for `boxplot <https://en.wikipedia.org/wiki/Box_plot>`__.\n\n        A consideration when using this chart is that the box and the whiskers\n        can overlap, which is very common when plotting small sets of data.\n\n        Parameters\n        ----------\n        by : str or sequence\n            Column in the DataFrame to group by.\n        **kwargs\n            Additional keywords are documented in\n            :meth:`DataFrame.plot`.\n\n        Returns\n        -------\n        :class:`matplotlib.axes.Axes` or numpy.ndarray of them\n\n        See Also\n        --------\n        DataFrame.boxplot: Another method to draw a box plot.\n        Series.plot.box: Draw a box plot from a Series object.\n        matplotlib.pyplot.boxplot: Draw a box plot in matplotlib.\n\n        Examples\n        --------\n        Draw a box plot from a DataFrame with four columns of randomly\n        generated data.\n\n        .. plot::\n            :context: close-figs\n\n            >>> data = np.random.randn(25, 4)\n            >>> df = pd.DataFrame(data, columns=list('ABCD'))\n            >>> ax = df.plot.box()\n        "
+        return self(kind='box', by=by, **kwargs)
 
     def hist(self, by=None, bins=10, **kwargs):
-        """
-        Draw one histogram of the DataFrame's columns.
-
-        A histogram is a representation of the distribution of data.
-        This function groups the values of all given Series in the DataFrame
-        into bins and draws all bins in one :class:`matplotlib.axes.Axes`.
-        This is useful when the DataFrame's Series are in a similar scale.
-
-        Parameters
-        ----------
-        by : str or sequence, optional
-            Column in the DataFrame to group by.
-        bins : int, default 10
-            Number of histogram bins to be used.
-        **kwargs
-            Additional keyword arguments are documented in
-            :meth:`DataFrame.plot`.
-
-        Returns
-        -------
-        class:`matplotlib.AxesSubplot`
-            Return a histogram plot.
-
-        See Also
-        --------
-        DataFrame.hist : Draw histograms per DataFrame's Series.
-        Series.hist : Draw a histogram with Series' data.
-
-        Examples
-        --------
-        When we draw a dice 6000 times, we expect to get each value around 1000
-        times. But when we draw two dices and sum the result, the distribution
-        is going to be quite different. A histogram illustrates those
-        distributions.
-
-        .. plot::
-            :context: close-figs
-
-            >>> df = pd.DataFrame(
-            ...     np.random.randint(1, 7, 6000),
-            ...     columns = ['one'])
-            >>> df['two'] = df['one'] + np.random.randint(1, 7, 6000)
-            >>> ax = df.plot.hist(bins=12, alpha=0.5)
-        """
-        return self(kind="hist", by=by, bins=bins, **kwargs)
+        "\n        Draw one histogram of the DataFrame's columns.\n\n        A histogram is a representation of the distribution of data.\n        This function groups the values of all given Series in the DataFrame\n        into bins and draws all bins in one :class:`matplotlib.axes.Axes`.\n        This is useful when the DataFrame's Series are in a similar scale.\n\n        Parameters\n        ----------\n        by : str or sequence, optional\n            Column in the DataFrame to group by.\n        bins : int, default 10\n            Number of histogram bins to be used.\n        **kwargs\n            Additional keyword arguments are documented in\n            :meth:`DataFrame.plot`.\n\n        Returns\n        -------\n        class:`matplotlib.AxesSubplot`\n            Return a histogram plot.\n\n        See Also\n        --------\n        DataFrame.hist : Draw histograms per DataFrame's Series.\n        Series.hist : Draw a histogram with Series' data.\n\n        Examples\n        --------\n        When we draw a dice 6000 times, we expect to get each value around 1000\n        times. But when we draw two dices and sum the result, the distribution\n        is going to be quite different. A histogram illustrates those\n        distributions.\n\n        .. plot::\n            :context: close-figs\n\n            >>> df = pd.DataFrame(\n            ...     np.random.randint(1, 7, 6000),\n            ...     columns = ['one'])\n            >>> df['two'] = df['one'] + np.random.randint(1, 7, 6000)\n            >>> ax = df.plot.hist(bins=12, alpha=0.5)\n        "
+        return self(kind='hist', by=by, bins=bins, **kwargs)
 
     def kde(self, bw_method=None, ind=None, **kwargs):
-        """
-        Generate Kernel Density Estimate plot using Gaussian kernels.
-
-        In statistics, `kernel density estimation`_ (KDE) is a non-parametric
-        way to estimate the probability density function (PDF) of a random
-        variable. This function uses Gaussian kernels and includes automatic
-        bandwidth determination.
-
-        .. _kernel density estimation:
-            https://en.wikipedia.org/wiki/Kernel_density_estimation
-
-        Parameters
-        ----------
-        bw_method : str, scalar or callable, optional
-            The method used to calculate the estimator bandwidth. This can be
-            'scott', 'silverman', a scalar constant or a callable.
-            If None (default), 'scott' is used.
-            See :class:`scipy.stats.gaussian_kde` for more information.
-        ind : NumPy array or int, optional
-            Evaluation points for the estimated PDF. If None (default),
-            1000 equally spaced points are used. If `ind` is a NumPy array, the
-            KDE is evaluated at the points passed. If `ind` is an integer,
-            `ind` number of equally spaced points are used.
-        **kwargs
-            Additional keyword arguments are documented in
-            :meth:`pandas.%(this-datatype)s.plot`.
-
-        Returns
-        -------
-        matplotlib.axes.Axes or numpy.ndarray of them
-
-        See Also
-        --------
-        scipy.stats.gaussian_kde : Representation of a kernel-density
-            estimate using Gaussian kernels. This is the function used
-            internally to estimate the PDF.
-
-        Examples
-        --------
-        Given a Series of points randomly sampled from an unknown
-        distribution, estimate its PDF using KDE with automatic
-        bandwidth determination and plot the results, evaluating them at
-        1000 equally spaced points (default):
-
-        .. plot::
-            :context: close-figs
-
-            >>> s = pd.Series([1, 2, 2.5, 3, 3.5, 4, 5])
-            >>> ax = s.plot.kde()
-
-        A scalar bandwidth can be specified. Using a small bandwidth value can
-        lead to over-fitting, while using a large bandwidth value may result
-        in under-fitting:
-
-        .. plot::
-            :context: close-figs
-
-            >>> ax = s.plot.kde(bw_method=0.3)
-
-        .. plot::
-            :context: close-figs
-
-            >>> ax = s.plot.kde(bw_method=3)
-
-        Finally, the `ind` parameter determines the evaluation points for the
-        plot of the estimated PDF:
-
-        .. plot::
-            :context: close-figs
-
-            >>> ax = s.plot.kde(ind=[1, 2, 3, 4, 5])
-
-        For DataFrame, it works in the same way:
-
-        .. plot::
-            :context: close-figs
-
-            >>> df = pd.DataFrame({
-            ...     'x': [1, 2, 2.5, 3, 3.5, 4, 5],
-            ...     'y': [4, 4, 4.5, 5, 5.5, 6, 6],
-            ... })
-            >>> ax = df.plot.kde()
-
-        A scalar bandwidth can be specified. Using a small bandwidth value can
-        lead to over-fitting, while using a large bandwidth value may result
-        in under-fitting:
-
-        .. plot::
-            :context: close-figs
-
-            >>> ax = df.plot.kde(bw_method=0.3)
-
-        .. plot::
-            :context: close-figs
-
-            >>> ax = df.plot.kde(bw_method=3)
-
-        Finally, the `ind` parameter determines the evaluation points for the
-        plot of the estimated PDF:
-
-        .. plot::
-            :context: close-figs
-
-            >>> ax = df.plot.kde(ind=[1, 2, 3, 4, 5, 6])
-        """
-        return self(kind="kde", bw_method=bw_method, ind=ind, **kwargs)
-
+        "\n        Generate Kernel Density Estimate plot using Gaussian kernels.\n\n        In statistics, `kernel density estimation`_ (KDE) is a non-parametric\n        way to estimate the probability density function (PDF) of a random\n        variable. This function uses Gaussian kernels and includes automatic\n        bandwidth determination.\n\n        .. _kernel density estimation:\n            https://en.wikipedia.org/wiki/Kernel_density_estimation\n\n        Parameters\n        ----------\n        bw_method : str, scalar or callable, optional\n            The method used to calculate the estimator bandwidth. This can be\n            'scott', 'silverman', a scalar constant or a callable.\n            If None (default), 'scott' is used.\n            See :class:`scipy.stats.gaussian_kde` for more information.\n        ind : NumPy array or int, optional\n            Evaluation points for the estimated PDF. If None (default),\n            1000 equally spaced points are used. If `ind` is a NumPy array, the\n            KDE is evaluated at the points passed. If `ind` is an integer,\n            `ind` number of equally spaced points are used.\n        **kwargs\n            Additional keyword arguments are documented in\n            :meth:`pandas.%(this-datatype)s.plot`.\n\n        Returns\n        -------\n        matplotlib.axes.Axes or numpy.ndarray of them\n\n        See Also\n        --------\n        scipy.stats.gaussian_kde : Representation of a kernel-density\n            estimate using Gaussian kernels. This is the function used\n            internally to estimate the PDF.\n\n        Examples\n        --------\n        Given a Series of points randomly sampled from an unknown\n        distribution, estimate its PDF using KDE with automatic\n        bandwidth determination and plot the results, evaluating them at\n        1000 equally spaced points (default):\n\n        .. plot::\n            :context: close-figs\n\n            >>> s = pd.Series([1, 2, 2.5, 3, 3.5, 4, 5])\n            >>> ax = s.plot.kde()\n\n        A scalar bandwidth can be specified. Using a small bandwidth value can\n        lead to over-fitting, while using a large bandwidth value may result\n        in under-fitting:\n\n        .. plot::\n            :context: close-figs\n\n            >>> ax = s.plot.kde(bw_method=0.3)\n\n        .. plot::\n            :context: close-figs\n\n            >>> ax = s.plot.kde(bw_method=3)\n\n        Finally, the `ind` parameter determines the evaluation points for the\n        plot of the estimated PDF:\n\n        .. plot::\n            :context: close-figs\n\n            >>> ax = s.plot.kde(ind=[1, 2, 3, 4, 5])\n\n        For DataFrame, it works in the same way:\n\n        .. plot::\n            :context: close-figs\n\n            >>> df = pd.DataFrame({\n            ...     'x': [1, 2, 2.5, 3, 3.5, 4, 5],\n            ...     'y': [4, 4, 4.5, 5, 5.5, 6, 6],\n            ... })\n            >>> ax = df.plot.kde()\n\n        A scalar bandwidth can be specified. Using a small bandwidth value can\n        lead to over-fitting, while using a large bandwidth value may result\n        in under-fitting:\n\n        .. plot::\n            :context: close-figs\n\n            >>> ax = df.plot.kde(bw_method=0.3)\n\n        .. plot::\n            :context: close-figs\n\n            >>> ax = df.plot.kde(bw_method=3)\n\n        Finally, the `ind` parameter determines the evaluation points for the\n        plot of the estimated PDF:\n\n        .. plot::\n            :context: close-figs\n\n            >>> ax = df.plot.kde(ind=[1, 2, 3, 4, 5, 6])\n        "
+        return self(kind='kde', bw_method=bw_method, ind=ind, **kwargs)
     density = kde
 
     def area(self, x=None, y=None, **kwargs):
-        """
-        Draw a stacked area plot.
-
-        An area plot displays quantitative data visually.
-        This function wraps the matplotlib area function.
-
-        Parameters
-        ----------
-        x : label or position, optional
-            Coordinates for the X axis. By default uses the index.
-        y : label or position, optional
-            Column to plot. By default uses all columns.
-        stacked : bool, default True
-            Area plots are stacked by default. Set to False to create a
-            unstacked plot.
-        **kwargs
-            Additional keyword arguments are documented in
-            :meth:`DataFrame.plot`.
-
-        Returns
-        -------
-        matplotlib.axes.Axes or numpy.ndarray
-            Area plot, or array of area plots if subplots is True.
-
-        See Also
-        --------
-        DataFrame.plot : Make plots of DataFrame using matplotlib / pylab.
-
-        Examples
-        --------
-        Draw an area plot based on basic business metrics:
-
-        .. plot::
-            :context: close-figs
-
-            >>> df = pd.DataFrame({
-            ...     'sales': [3, 2, 3, 9, 10, 6],
-            ...     'signups': [5, 5, 6, 12, 14, 13],
-            ...     'visits': [20, 42, 28, 62, 81, 50],
-            ... }, index=pd.date_range(start='2018/01/01', end='2018/07/01',
-            ...                        freq='M'))
-            >>> ax = df.plot.area()
-
-        Area plots are stacked by default. To produce an unstacked plot,
-        pass ``stacked=False``:
-
-        .. plot::
-            :context: close-figs
-
-            >>> ax = df.plot.area(stacked=False)
-
-        Draw an area plot for a single column:
-
-        .. plot::
-            :context: close-figs
-
-            >>> ax = df.plot.area(y='sales')
-
-        Draw with a different `x`:
-
-        .. plot::
-            :context: close-figs
-
-            >>> df = pd.DataFrame({
-            ...     'sales': [3, 2, 3],
-            ...     'visits': [20, 42, 28],
-            ...     'day': [1, 2, 3],
-            ... })
-            >>> ax = df.plot.area(x='day')
-        """
-        return self(kind="area", x=x, y=y, **kwargs)
+        "\n        Draw a stacked area plot.\n\n        An area plot displays quantitative data visually.\n        This function wraps the matplotlib area function.\n\n        Parameters\n        ----------\n        x : label or position, optional\n            Coordinates for the X axis. By default uses the index.\n        y : label or position, optional\n            Column to plot. By default uses all columns.\n        stacked : bool, default True\n            Area plots are stacked by default. Set to False to create a\n            unstacked plot.\n        **kwargs\n            Additional keyword arguments are documented in\n            :meth:`DataFrame.plot`.\n\n        Returns\n        -------\n        matplotlib.axes.Axes or numpy.ndarray\n            Area plot, or array of area plots if subplots is True.\n\n        See Also\n        --------\n        DataFrame.plot : Make plots of DataFrame using matplotlib / pylab.\n\n        Examples\n        --------\n        Draw an area plot based on basic business metrics:\n\n        .. plot::\n            :context: close-figs\n\n            >>> df = pd.DataFrame({\n            ...     'sales': [3, 2, 3, 9, 10, 6],\n            ...     'signups': [5, 5, 6, 12, 14, 13],\n            ...     'visits': [20, 42, 28, 62, 81, 50],\n            ... }, index=pd.date_range(start='2018/01/01', end='2018/07/01',\n            ...                        freq='M'))\n            >>> ax = df.plot.area()\n\n        Area plots are stacked by default. To produce an unstacked plot,\n        pass ``stacked=False``:\n\n        .. plot::\n            :context: close-figs\n\n            >>> ax = df.plot.area(stacked=False)\n\n        Draw an area plot for a single column:\n\n        .. plot::\n            :context: close-figs\n\n            >>> ax = df.plot.area(y='sales')\n\n        Draw with a different `x`:\n\n        .. plot::\n            :context: close-figs\n\n            >>> df = pd.DataFrame({\n            ...     'sales': [3, 2, 3],\n            ...     'visits': [20, 42, 28],\n            ...     'day': [1, 2, 3],\n            ... })\n            >>> ax = df.plot.area(x='day')\n        "
+        return self(kind='area', x=x, y=y, **kwargs)
 
     def pie(self, **kwargs):
-        """
-        Generate a pie plot.
-
-        A pie plot is a proportional representation of the numerical data in a
-        column. This function wraps :meth:`matplotlib.pyplot.pie` for the
-        specified column. If no column reference is passed and
-        ``subplots=True`` a pie plot is drawn for each numerical column
-        independently.
-
-        Parameters
-        ----------
-        y : int or label, optional
-            Label or position of the column to plot.
-            If not provided, ``subplots=True`` argument must be passed.
-        **kwargs
-            Keyword arguments to pass on to :meth:`DataFrame.plot`.
-
-        Returns
-        -------
-        matplotlib.axes.Axes or np.ndarray of them
-            A NumPy array is returned when `subplots` is True.
-
-        See Also
-        --------
-        Series.plot.pie : Generate a pie plot for a Series.
-        DataFrame.plot : Make plots of a DataFrame.
-
-        Examples
-        --------
-        In the example below we have a DataFrame with the information about
-        planet's mass and radius. We pass the 'mass' column to the
-        pie function to get a pie plot.
-
-        .. plot::
-            :context: close-figs
-
-            >>> df = pd.DataFrame({'mass': [0.330, 4.87 , 5.97],
-            ...                    'radius': [2439.7, 6051.8, 6378.1]},
-            ...                   index=['Mercury', 'Venus', 'Earth'])
-            >>> plot = df.plot.pie(y='mass', figsize=(5, 5))
-
-        .. plot::
-            :context: close-figs
-
-            >>> plot = df.plot.pie(subplots=True, figsize=(11, 6))
-        """
-        if (
-            isinstance(self._parent, ABCDataFrame)
-            and kwargs.get("y", None) is None
-            and not kwargs.get("subplots", False)
-        ):
+        "\n        Generate a pie plot.\n\n        A pie plot is a proportional representation of the numerical data in a\n        column. This function wraps :meth:`matplotlib.pyplot.pie` for the\n        specified column. If no column reference is passed and\n        ``subplots=True`` a pie plot is drawn for each numerical column\n        independently.\n\n        Parameters\n        ----------\n        y : int or label, optional\n            Label or position of the column to plot.\n            If not provided, ``subplots=True`` argument must be passed.\n        **kwargs\n            Keyword arguments to pass on to :meth:`DataFrame.plot`.\n\n        Returns\n        -------\n        matplotlib.axes.Axes or np.ndarray of them\n            A NumPy array is returned when `subplots` is True.\n\n        See Also\n        --------\n        Series.plot.pie : Generate a pie plot for a Series.\n        DataFrame.plot : Make plots of a DataFrame.\n\n        Examples\n        --------\n        In the example below we have a DataFrame with the information about\n        planet's mass and radius. We pass the 'mass' column to the\n        pie function to get a pie plot.\n\n        .. plot::\n            :context: close-figs\n\n            >>> df = pd.DataFrame({'mass': [0.330, 4.87 , 5.97],\n            ...                    'radius': [2439.7, 6051.8, 6378.1]},\n            ...                   index=['Mercury', 'Venus', 'Earth'])\n            >>> plot = df.plot.pie(y='mass', figsize=(5, 5))\n\n        .. plot::\n            :context: close-figs\n\n            >>> plot = df.plot.pie(subplots=True, figsize=(11, 6))\n        "
+        if (isinstance(self._parent, ABCDataFrame) and (kwargs.get('y', None) is None) and (not kwargs.get('subplots', False))):
             raise ValueError("pie requires either y column or 'subplots=True'")
-        return self(kind="pie", **kwargs)
+        return self(kind='pie', **kwargs)
 
     def scatter(self, x, y, s=None, c=None, **kwargs):
-        """
-        Create a scatter plot with varying marker point size and color.
-
-        The coordinates of each point are defined by two dataframe columns and
-        filled circles are used to represent each point. This kind of plot is
-        useful to see complex correlations between two variables. Points could
-        be for instance natural 2D coordinates like longitude and latitude in
-        a map or, in general, any pair of metrics that can be plotted against
-        each other.
-
-        Parameters
-        ----------
-        x : int or str
-            The column name or column position to be used as horizontal
-            coordinates for each point.
-        y : int or str
-            The column name or column position to be used as vertical
-            coordinates for each point.
-        s : str, scalar or array_like, optional
-            The size of each point. Possible values are:
-
-            - A string with the name of the column to be used for marker's size.
-
-            - A single scalar so all points have the same size.
-
-            - A sequence of scalars, which will be used for each point's size
-              recursively. For instance, when passing [2,14] all points size
-              will be either 2 or 14, alternatively.
-
-              .. versionchanged:: 1.1.0
-
-        c : str, int or array_like, optional
-            The color of each point. Possible values are:
-
-            - A single color string referred to by name, RGB or RGBA code,
-              for instance 'red' or '#a98d19'.
-
-            - A sequence of color strings referred to by name, RGB or RGBA
-              code, which will be used for each point's color recursively. For
-              instance ['green','yellow'] all points will be filled in green or
-              yellow, alternatively.
-
-            - A column name or position whose values will be used to color the
-              marker points according to a colormap.
-
-        **kwargs
-            Keyword arguments to pass on to :meth:`DataFrame.plot`.
-
-        Returns
-        -------
-        :class:`matplotlib.axes.Axes` or numpy.ndarray of them
-
-        See Also
-        --------
-        matplotlib.pyplot.scatter : Scatter plot using multiple input data
-            formats.
-
-        Examples
-        --------
-        Let's see how to draw a scatter plot using coordinates from the values
-        in a DataFrame's columns.
-
-        .. plot::
-            :context: close-figs
-
-            >>> df = pd.DataFrame([[5.1, 3.5, 0], [4.9, 3.0, 0], [7.0, 3.2, 1],
-            ...                    [6.4, 3.2, 1], [5.9, 3.0, 2]],
-            ...                   columns=['length', 'width', 'species'])
-            >>> ax1 = df.plot.scatter(x='length',
-            ...                       y='width',
-            ...                       c='DarkBlue')
-
-        And now with the color determined by a column as well.
-
-        .. plot::
-            :context: close-figs
-
-            >>> ax2 = df.plot.scatter(x='length',
-            ...                       y='width',
-            ...                       c='species',
-            ...                       colormap='viridis')
-        """
-        return self(kind="scatter", x=x, y=y, s=s, c=c, **kwargs)
+        "\n        Create a scatter plot with varying marker point size and color.\n\n        The coordinates of each point are defined by two dataframe columns and\n        filled circles are used to represent each point. This kind of plot is\n        useful to see complex correlations between two variables. Points could\n        be for instance natural 2D coordinates like longitude and latitude in\n        a map or, in general, any pair of metrics that can be plotted against\n        each other.\n\n        Parameters\n        ----------\n        x : int or str\n            The column name or column position to be used as horizontal\n            coordinates for each point.\n        y : int or str\n            The column name or column position to be used as vertical\n            coordinates for each point.\n        s : str, scalar or array_like, optional\n            The size of each point. Possible values are:\n\n            - A string with the name of the column to be used for marker's size.\n\n            - A single scalar so all points have the same size.\n\n            - A sequence of scalars, which will be used for each point's size\n              recursively. For instance, when passing [2,14] all points size\n              will be either 2 or 14, alternatively.\n\n              .. versionchanged:: 1.1.0\n\n        c : str, int or array_like, optional\n            The color of each point. Possible values are:\n\n            - A single color string referred to by name, RGB or RGBA code,\n              for instance 'red' or '#a98d19'.\n\n            - A sequence of color strings referred to by name, RGB or RGBA\n              code, which will be used for each point's color recursively. For\n              instance ['green','yellow'] all points will be filled in green or\n              yellow, alternatively.\n\n            - A column name or position whose values will be used to color the\n              marker points according to a colormap.\n\n        **kwargs\n            Keyword arguments to pass on to :meth:`DataFrame.plot`.\n\n        Returns\n        -------\n        :class:`matplotlib.axes.Axes` or numpy.ndarray of them\n\n        See Also\n        --------\n        matplotlib.pyplot.scatter : Scatter plot using multiple input data\n            formats.\n\n        Examples\n        --------\n        Let's see how to draw a scatter plot using coordinates from the values\n        in a DataFrame's columns.\n\n        .. plot::\n            :context: close-figs\n\n            >>> df = pd.DataFrame([[5.1, 3.5, 0], [4.9, 3.0, 0], [7.0, 3.2, 1],\n            ...                    [6.4, 3.2, 1], [5.9, 3.0, 2]],\n            ...                   columns=['length', 'width', 'species'])\n            >>> ax1 = df.plot.scatter(x='length',\n            ...                       y='width',\n            ...                       c='DarkBlue')\n\n        And now with the color determined by a column as well.\n\n        .. plot::\n            :context: close-figs\n\n            >>> ax2 = df.plot.scatter(x='length',\n            ...                       y='width',\n            ...                       c='species',\n            ...                       colormap='viridis')\n        "
+        return self(kind='scatter', x=x, y=y, s=s, c=c, **kwargs)
 
     def hexbin(self, x, y, C=None, reduce_C_function=None, gridsize=None, **kwargs):
-        """
-        Generate a hexagonal binning plot.
-
-        Generate a hexagonal binning plot of `x` versus `y`. If `C` is `None`
-        (the default), this is a histogram of the number of occurrences
-        of the observations at ``(x[i], y[i])``.
-
-        If `C` is specified, specifies values at given coordinates
-        ``(x[i], y[i])``. These values are accumulated for each hexagonal
-        bin and then reduced according to `reduce_C_function`,
-        having as default the NumPy's mean function (:meth:`numpy.mean`).
-        (If `C` is specified, it must also be a 1-D sequence
-        of the same length as `x` and `y`, or a column label.)
-
-        Parameters
-        ----------
-        x : int or str
-            The column label or position for x points.
-        y : int or str
-            The column label or position for y points.
-        C : int or str, optional
-            The column label or position for the value of `(x, y)` point.
-        reduce_C_function : callable, default `np.mean`
-            Function of one argument that reduces all the values in a bin to
-            a single number (e.g. `np.mean`, `np.max`, `np.sum`, `np.std`).
-        gridsize : int or tuple of (int, int), default 100
-            The number of hexagons in the x-direction.
-            The corresponding number of hexagons in the y-direction is
-            chosen in a way that the hexagons are approximately regular.
-            Alternatively, gridsize can be a tuple with two elements
-            specifying the number of hexagons in the x-direction and the
-            y-direction.
-        **kwargs
-            Additional keyword arguments are documented in
-            :meth:`DataFrame.plot`.
-
-        Returns
-        -------
-        matplotlib.AxesSubplot
-            The matplotlib ``Axes`` on which the hexbin is plotted.
-
-        See Also
-        --------
-        DataFrame.plot : Make plots of a DataFrame.
-        matplotlib.pyplot.hexbin : Hexagonal binning plot using matplotlib,
-            the matplotlib function that is used under the hood.
-
-        Examples
-        --------
-        The following examples are generated with random data from
-        a normal distribution.
-
-        .. plot::
-            :context: close-figs
-
-            >>> n = 10000
-            >>> df = pd.DataFrame({'x': np.random.randn(n),
-            ...                    'y': np.random.randn(n)})
-            >>> ax = df.plot.hexbin(x='x', y='y', gridsize=20)
-
-        The next example uses `C` and `np.sum` as `reduce_C_function`.
-        Note that `'observations'` values ranges from 1 to 5 but the result
-        plot shows values up to more than 25. This is because of the
-        `reduce_C_function`.
-
-        .. plot::
-            :context: close-figs
-
-            >>> n = 500
-            >>> df = pd.DataFrame({
-            ...     'coord_x': np.random.uniform(-3, 3, size=n),
-            ...     'coord_y': np.random.uniform(30, 50, size=n),
-            ...     'observations': np.random.randint(1,5, size=n)
-            ...     })
-            >>> ax = df.plot.hexbin(x='coord_x',
-            ...                     y='coord_y',
-            ...                     C='observations',
-            ...                     reduce_C_function=np.sum,
-            ...                     gridsize=10,
-            ...                     cmap="viridis")
-        """
-        if reduce_C_function is not None:
-            kwargs["reduce_C_function"] = reduce_C_function
-        if gridsize is not None:
-            kwargs["gridsize"] = gridsize
-
-        return self(kind="hexbin", x=x, y=y, C=C, **kwargs)
-
-
+        '\n        Generate a hexagonal binning plot.\n\n        Generate a hexagonal binning plot of `x` versus `y`. If `C` is `None`\n        (the default), this is a histogram of the number of occurrences\n        of the observations at ``(x[i], y[i])``.\n\n        If `C` is specified, specifies values at given coordinates\n        ``(x[i], y[i])``. These values are accumulated for each hexagonal\n        bin and then reduced according to `reduce_C_function`,\n        having as default the NumPy\'s mean function (:meth:`numpy.mean`).\n        (If `C` is specified, it must also be a 1-D sequence\n        of the same length as `x` and `y`, or a column label.)\n\n        Parameters\n        ----------\n        x : int or str\n            The column label or position for x points.\n        y : int or str\n            The column label or position for y points.\n        C : int or str, optional\n            The column label or position for the value of `(x, y)` point.\n        reduce_C_function : callable, default `np.mean`\n            Function of one argument that reduces all the values in a bin to\n            a single number (e.g. `np.mean`, `np.max`, `np.sum`, `np.std`).\n        gridsize : int or tuple of (int, int), default 100\n            The number of hexagons in the x-direction.\n            The corresponding number of hexagons in the y-direction is\n            chosen in a way that the hexagons are approximately regular.\n            Alternatively, gridsize can be a tuple with two elements\n            specifying the number of hexagons in the x-direction and the\n            y-direction.\n        **kwargs\n            Additional keyword arguments are documented in\n            :meth:`DataFrame.plot`.\n\n        Returns\n        -------\n        matplotlib.AxesSubplot\n            The matplotlib ``Axes`` on which the hexbin is plotted.\n\n        See Also\n        --------\n        DataFrame.plot : Make plots of a DataFrame.\n        matplotlib.pyplot.hexbin : Hexagonal binning plot using matplotlib,\n            the matplotlib function that is used under the hood.\n\n        Examples\n        --------\n        The following examples are generated with random data from\n        a normal distribution.\n\n        .. plot::\n            :context: close-figs\n\n            >>> n = 10000\n            >>> df = pd.DataFrame({\'x\': np.random.randn(n),\n            ...                    \'y\': np.random.randn(n)})\n            >>> ax = df.plot.hexbin(x=\'x\', y=\'y\', gridsize=20)\n\n        The next example uses `C` and `np.sum` as `reduce_C_function`.\n        Note that `\'observations\'` values ranges from 1 to 5 but the result\n        plot shows values up to more than 25. This is because of the\n        `reduce_C_function`.\n\n        .. plot::\n            :context: close-figs\n\n            >>> n = 500\n            >>> df = pd.DataFrame({\n            ...     \'coord_x\': np.random.uniform(-3, 3, size=n),\n            ...     \'coord_y\': np.random.uniform(30, 50, size=n),\n            ...     \'observations\': np.random.randint(1,5, size=n)\n            ...     })\n            >>> ax = df.plot.hexbin(x=\'coord_x\',\n            ...                     y=\'coord_y\',\n            ...                     C=\'observations\',\n            ...                     reduce_C_function=np.sum,\n            ...                     gridsize=10,\n            ...                     cmap="viridis")\n        '
+        if (reduce_C_function is not None):
+            kwargs['reduce_C_function'] = reduce_C_function
+        if (gridsize is not None):
+            kwargs['gridsize'] = gridsize
+        return self(kind='hexbin', x=x, y=y, C=C, **kwargs)
 _backends = {}
 
-
-def _find_backend(backend: str):
-    """
-    Find a pandas plotting backend>
-
-    Parameters
-    ----------
-    backend : str
-        The identifier for the backend. Either an entrypoint item registered
-        with pkg_resources, or a module name.
-
-    Notes
-    -----
-    Modifies _backends with imported backends as a side effect.
-
-    Returns
-    -------
-    types.ModuleType
-        The imported backend.
-    """
-    import pkg_resources  # Delay import for performance.
-
-    for entry_point in pkg_resources.iter_entry_points("pandas_plotting_backends"):
-        if entry_point.name == "matplotlib":
-            # matplotlib is an optional dependency. When
-            # missing, this would raise.
+def _find_backend(backend):
+    '\n    Find a pandas plotting backend>\n\n    Parameters\n    ----------\n    backend : str\n        The identifier for the backend. Either an entrypoint item registered\n        with pkg_resources, or a module name.\n\n    Notes\n    -----\n    Modifies _backends with imported backends as a side effect.\n\n    Returns\n    -------\n    types.ModuleType\n        The imported backend.\n    '
+    import pkg_resources
+    for entry_point in pkg_resources.iter_entry_points('pandas_plotting_backends'):
+        if (entry_point.name == 'matplotlib'):
             continue
         _backends[entry_point.name] = entry_point.load()
-
     try:
         return _backends[backend]
     except KeyError:
-        # Fall back to unregistered, module name approach.
         try:
             module = importlib.import_module(backend)
         except ImportError:
-            # We re-raise later on.
             pass
         else:
-            if hasattr(module, "plot"):
-                # Validate that the interface is implemented when the option
-                # is set, rather than at plot time.
+            if hasattr(module, 'plot'):
                 _backends[backend] = module
                 return module
-
-    raise ValueError(
-        f"Could not find plotting backend '{backend}'. Ensure that you've installed "
-        f"the package providing the '{backend}' entrypoint, or that the package has a "
-        "top-level `.plot` method."
-    )
-
+    raise ValueError(f"Could not find plotting backend '{backend}'. Ensure that you've installed the package providing the '{backend}' entrypoint, or that the package has a top-level `.plot` method.")
 
 def _get_plot_backend(backend=None):
-    """
-    Return the plotting backend to use (e.g. `pandas.plotting._matplotlib`).
-
-    The plotting system of pandas has been using matplotlib, but the idea here
-    is that it can also work with other third-party backends. In the future,
-    this function will return the backend from a pandas option, and all the
-    rest of the code in this file will use the backend specified there for the
-    plotting.
-
-    The backend is imported lazily, as matplotlib is a soft dependency, and
-    pandas can be used without it being installed.
-    """
-    backend = backend or get_option("plotting.backend")
-
-    if backend == "matplotlib":
-        # Because matplotlib is an optional dependency and first-party backend,
-        # we need to attempt an import here to raise an ImportError if needed.
+    '\n    Return the plotting backend to use (e.g. `pandas.plotting._matplotlib`).\n\n    The plotting system of pandas has been using matplotlib, but the idea here\n    is that it can also work with other third-party backends. In the future,\n    this function will return the backend from a pandas option, and all the\n    rest of the code in this file will use the backend specified there for the\n    plotting.\n\n    The backend is imported lazily, as matplotlib is a soft dependency, and\n    pandas can be used without it being installed.\n    '
+    backend = (backend or get_option('plotting.backend'))
+    if (backend == 'matplotlib'):
         try:
             import pandas.plotting._matplotlib as module
         except ImportError:
-            raise ImportError(
-                "matplotlib is required for plotting when the "
-                'default backend "matplotlib" is selected.'
-            ) from None
-
-        _backends["matplotlib"] = module
-
-    if backend in _backends:
+            raise ImportError('matplotlib is required for plotting when the default backend "matplotlib" is selected.') from None
+        _backends['matplotlib'] = module
+    if (backend in _backends):
         return _backends[backend]
-
     module = _find_backend(backend)
     _backends[backend] = module
     return module

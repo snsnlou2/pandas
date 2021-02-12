@@ -1,53 +1,37 @@
+
 import pandas as pd
 
-
-class IndexCache:
+class IndexCache():
     number = 1
     repeat = (3, 100, 20)
-
-    params = [
-        [
-            "CategoricalIndex",
-            "DatetimeIndex",
-            "Float64Index",
-            "IntervalIndex",
-            "Int64Index",
-            "MultiIndex",
-            "PeriodIndex",
-            "RangeIndex",
-            "TimedeltaIndex",
-            "UInt64Index",
-        ]
-    ]
-    param_names = ["index_type"]
+    params = [['CategoricalIndex', 'DatetimeIndex', 'Float64Index', 'IntervalIndex', 'Int64Index', 'MultiIndex', 'PeriodIndex', 'RangeIndex', 'TimedeltaIndex', 'UInt64Index']]
+    param_names = ['index_type']
 
     def setup(self, index_type):
-        N = 10 ** 5
-        if index_type == "MultiIndex":
-            self.idx = pd.MultiIndex.from_product(
-                [pd.date_range("1/1/2000", freq="T", periods=N // 2), ["a", "b"]]
-            )
-        elif index_type == "DatetimeIndex":
-            self.idx = pd.date_range("1/1/2000", freq="T", periods=N)
-        elif index_type == "Int64Index":
+        N = (10 ** 5)
+        if (index_type == 'MultiIndex'):
+            self.idx = pd.MultiIndex.from_product([pd.date_range('1/1/2000', freq='T', periods=(N // 2)), ['a', 'b']])
+        elif (index_type == 'DatetimeIndex'):
+            self.idx = pd.date_range('1/1/2000', freq='T', periods=N)
+        elif (index_type == 'Int64Index'):
             self.idx = pd.Index(range(N))
-        elif index_type == "PeriodIndex":
-            self.idx = pd.period_range("1/1/2000", freq="T", periods=N)
-        elif index_type == "RangeIndex":
+        elif (index_type == 'PeriodIndex'):
+            self.idx = pd.period_range('1/1/2000', freq='T', periods=N)
+        elif (index_type == 'RangeIndex'):
             self.idx = pd.RangeIndex(start=0, stop=N)
-        elif index_type == "IntervalIndex":
-            self.idx = pd.IntervalIndex.from_arrays(range(N), range(1, N + 1))
-        elif index_type == "TimedeltaIndex":
+        elif (index_type == 'IntervalIndex'):
+            self.idx = pd.IntervalIndex.from_arrays(range(N), range(1, (N + 1)))
+        elif (index_type == 'TimedeltaIndex'):
             self.idx = pd.TimedeltaIndex(range(N))
-        elif index_type == "Float64Index":
+        elif (index_type == 'Float64Index'):
             self.idx = pd.Float64Index(range(N))
-        elif index_type == "UInt64Index":
+        elif (index_type == 'UInt64Index'):
             self.idx = pd.UInt64Index(range(N))
-        elif index_type == "CategoricalIndex":
+        elif (index_type == 'CategoricalIndex'):
             self.idx = pd.CategoricalIndex(range(N), range(N))
         else:
             raise ValueError
-        assert len(self.idx) == N
+        assert (len(self.idx) == N)
         self.idx._cache = {}
 
     def time_values(self, index_type):
